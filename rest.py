@@ -16,92 +16,62 @@ x_in = x_enlarge
 x_noisy = layer.high_low_noise( x_in , HIGH_LOW_NOISE)
 
 
-def encode(image, layers_in, layers_out, width=3) :
-  result = image
-  result = layer.conv_relu( result , layers_in , layers_out , stride=2, width=width )
-  return result
+def encode( image, layers_in, layers_out=0, width=3, reuse=True ) :
+  with tf.variable_scope( "conv"+str(layers_in) , reuse=reuse ) :
+    layers_out = layers_in * 2 if layers_out == 0 else layers_out
+    image = layer.conv_relu( image , layers_in , layers_out , stride=2, width=width )
+    return image
 
-def decode(image, layers_in, layers_out, width=3) :
-  result = image
-  result = layer.upscaleFlat( result , scale=2 )
-  result = layer.conv_relu( result , layers_in , layers_out , width=width )
-  return result
+def decode( image, layers_in, layers_out=0, width=3, reuse=True ) :
+  with tf.variable_scope( "deconv"+str(layers_in) , reuse=reuse ) :
+    layers_out = layers_in / 2 if layers_out == 0 else layers_out
+    image = layer.upscaleFlat( image , scale=2 )
+    image = layer.conv_relu( image , layers_in , layers_out , width=width )
+    return image
 
 
-with tf.variable_scope("conv1") :
-  conv5a = encode( x_noisy , 1 , 2 )
-with tf.variable_scope("conv2") :
-  conv5b = encode( conv5a , 2 , 4 )
-with tf.variable_scope("conv3") :
-  conv5c = encode( conv5b , 4 , 8 )
-with tf.variable_scope("conv4") :
-  conv5d = encode( conv5c , 8 , 16 )
-with tf.variable_scope("conv5") :
-  conv5e = encode( conv5d , 16 , 32 )
-with tf.variable_scope("deconv5") :
-  deconv5a = decode(conv5e , 32 , 16 )
-with tf.variable_scope("deconv4") :
-  deconv5b = decode(deconv5a , 16 , 8 )
-with tf.variable_scope("deconv3") :
-  deconv5c = decode(deconv5b , 8 , 4 )
-with tf.variable_scope("deconv2") :
-  deconv5d = decode(deconv5c , 4 , 2 )
-with tf.variable_scope("deconv1") :
-  deconv5e = decode(deconv5d , 2 , 1 )
+conv5a = encode( x_noisy , 1 , reuse=False)
+conv5b = encode( conv5a , 2 , reuse=False )
+conv5c = encode( conv5b , 4 , reuse=False )
+conv5d = encode( conv5c , 8 , reuse=False )
+conv5e = encode( conv5d , 16 , reuse=False )
+deconv5a = decode( conv5e , 32 , reuse=False )
+deconv5b = decode( deconv5a , 16 , reuse=False )
+deconv5c = decode( deconv5b , 8 , reuse=False )
+deconv5d = decode( deconv5c , 4 , reuse=False )
+deconv5e = decode( deconv5d , 2 , reuse=False )
 
 x_out_5 = deconv5e
 
-with tf.variable_scope("conv1", reuse=True) :
-  conv4a = encode( x_noisy , 1 , 2 )
-with tf.variable_scope("conv2", reuse=True) :
-  conv4b = encode( conv4a , 2 , 4 )
-with tf.variable_scope("conv3", reuse=True) :
-  conv4c = encode( conv4b , 4 , 8 )
-with tf.variable_scope("conv4", reuse=True) :
-  conv4d = encode( conv4c , 8 , 16 )
-with tf.variable_scope("deconv4", reuse=True) :
-  deconv4a = decode(conv4d , 16 , 8 )
-with tf.variable_scope("deconv3", reuse=True) :
-  deconv4b = decode(deconv4a , 8 , 4 )
-with tf.variable_scope("deconv2", reuse=True) :
-  deconv4c = decode(deconv4b , 4 , 2 )
-with tf.variable_scope("deconv1", reuse=True) :
-  deconv4d = decode(deconv4c , 2 , 1 )
+conv4a = encode( x_noisy , 1 )
+conv4b = encode( conv4a , 2 )
+conv4c = encode( conv4b , 4 )
+conv4d = encode( conv4c , 8 )
+deconv4a = decode( conv4d , 16 )
+deconv4b = decode( deconv4a , 8 )
+deconv4c = decode( deconv4b , 4 )
+deconv4d = decode( deconv4c , 2 )
 
 x_out_4 = deconv4d
 
-
-with tf.variable_scope("conv1", reuse=True) :
-  conv3a = encode( x_noisy , 1 , 2 )
-with tf.variable_scope("conv2", reuse=True) :
-  conv3b = encode( conv3a , 2 , 4 )
-with tf.variable_scope("conv3", reuse=True) :
-  conv3c = encode( conv3b , 4 , 8 )
-with tf.variable_scope("deconv3", reuse=True) :
-  deconv3a = decode(conv3c , 8 , 4 )
-with tf.variable_scope("deconv2", reuse=True) :
-  deconv3b = decode(deconv3a , 4 , 2 )
-with tf.variable_scope("deconv1", reuse=True) :
-  deconv3c = decode(deconv3b , 2 , 1 )
+conv3a = encode( x_noisy , 1 )
+conv3b = encode( conv3a , 2 )
+conv3c = encode( conv3b , 4 )
+deconv3a = decode( conv3c , 8 )
+deconv3b = decode( deconv3a , 4 )
+deconv3c = decode( deconv3b , 2 )
 
 x_out_3 = deconv3c
 
-with tf.variable_scope("conv1", reuse=True) :
-  conv2a = encode( x_noisy , 1 , 2 )
-with tf.variable_scope("conv2", reuse=True) :
-  conv2b = encode( conv2a , 2 , 4 )
-with tf.variable_scope("deconv2", reuse=True) :
-  deconv2a = decode(conv2b , 4 , 2 )
-with tf.variable_scope("deconv1", reuse=True) :
-  deconv2b = decode(deconv2a , 2 , 1 )
+conv2a = encode( x_noisy , 1 )
+conv2b = encode( conv2a , 2 )
+deconv2a = decode( conv2b , 4 )
+deconv2b = decode( deconv2a , 2 )
 
 x_out_2 = deconv2b
 
-with tf.variable_scope("conv1", reuse=True) :
-  conv1a = encode( x_noisy , 1 , 2 )
-
-with tf.variable_scope("deconv1", reuse=True) :
-  deconv1a = decode(conv1a , 2 , 1 )
+conv1a = encode( x_noisy , 1 )
+deconv1a = decode( conv1a , 2 )
 
 x_out_1 = deconv1a
 
@@ -157,6 +127,11 @@ def doEpochOfTraining( loss, train, batches=55000/100, batch_size=100, rate=LEAR
 
 
 
+if __name__ == "__main__" :
+  print "Start training test ..."
+  doEpochOfTraining( loss_6 , train_6 , batches=1 , batch_size=5 )
+  print "... finished training test."
+  exit()
 
 
 
