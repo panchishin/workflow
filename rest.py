@@ -34,13 +34,13 @@ with tf.variable_scope("conv2") :
   conv5b = encode( conv5a , 2 , 4 )
 with tf.variable_scope("conv3") :
   conv5c = encode( conv5b , 4 , 8 )
-with tf.variable_scope("conv5") :
+with tf.variable_scope("conv4") :
   conv5d = encode( conv5c , 8 , 16 )
 with tf.variable_scope("conv5") :
   conv5e = encode( conv5d , 16 , 32 )
-with tf.variable_scope("deconv3") :
+with tf.variable_scope("deconv5") :
   deconv5a = decode(conv5e , 32 , 16 )
-with tf.variable_scope("deconv3") :
+with tf.variable_scope("deconv4") :
   deconv5b = decode(deconv5a , 16 , 8 )
 with tf.variable_scope("deconv3") :
   deconv5c = decode(deconv5b , 8 , 4 )
@@ -59,7 +59,7 @@ with tf.variable_scope("conv3", reuse=True) :
   conv4c = encode( conv4b , 4 , 8 )
 with tf.variable_scope("conv4", reuse=True) :
   conv4d = encode( conv4c , 8 , 16 )
-with tf.variable_scope("deconv3", reuse=True) :
+with tf.variable_scope("deconv4", reuse=True) :
   deconv4a = decode(conv4d , 16 , 8 )
 with tf.variable_scope("deconv3", reuse=True) :
   deconv4b = decode(deconv4a , 8 , 4 )
@@ -278,7 +278,8 @@ def getEmbeddings() :
     global all_embeddings
     if len(all_embeddings) == 0 :
       updateEmbeddings()
-      return all_embeddings
+    return all_embeddings
+
 
 class UpdateEmbeddings :
     def on_get(self, req, resp):
