@@ -8,7 +8,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         'training_sessions' : [0,0,0,0,0,0,0],
         'similar_images' : [],
         'difference_images' : [],
-        'iterations' : 1,
         'sele' : 1,
         'prev' : 2,
         'blend' : [0,10,20,30,40,50,60,70,80,90,100],
@@ -66,10 +65,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             console.log("...DONE");
             $scope.data.training_sessions[index] += 1;
             $scope.randomizeImage();
-
-            if ($scope.data.training_sessions[index] % (1 * $scope.data.iterations) != 0) {
-                setTimeout( function() { $scope.learn(index) } , 5000 );
-            }
         })
     }
 
