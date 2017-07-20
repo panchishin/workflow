@@ -20,17 +20,25 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             $scope.data.images.push( Math.floor( Math.random() * 10000 ) )
         }
     }
+    $scope.randomizeImage()
 
     $scope.reset_session = function() {
         $http({method:"GET" , url : "/reset_session" , cache: false}).then(function successCallback(result) {
-            console.log("resetSession");
+            console.log("reset_session");
             $scope.randomizeImage();
         })
     }
 
-    $scope.update_embeddings = function() {
-        $http({method:"GET" , url : "/update_embeddings" , cache: false}).then(function successCallback(result) {
-            console.log("update_embeddings");
+    $scope.restore_session = function() {
+        $http({method:"GET" , url : "/restore_session" , cache: false}).then(function successCallback(result) {
+            console.log("restore_session");
+            $scope.randomizeImage();
+        })
+    }
+
+    $scope.save_session = function() {
+        $http({method:"GET" , url : "/save_session" , cache: false}).then(function successCallback(result) {
+            console.log("save_session");
         })
     }
 

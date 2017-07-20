@@ -9,7 +9,8 @@
 <body ng-controller="mainController">
 
         <button type="button" class="btn btn-primary btn-sm" ng-click="reset_session()">Reset Net</button>
-        <button type="button" class="btn btn-primary btn-sm" ng-click="update_embeddings()">Update Embeddings</button>
+        <button type="button" class="btn btn-primary btn-sm" ng-click="restore_session()">Restore Net</button>
+        <button type="button" class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
         <button type="button" class="btn btn-primary btn-sm" ng-click="randomizeImage()">Randomize Image</button>
         Iterations <input ng-model="data.iterations" type="text">
         <hr>

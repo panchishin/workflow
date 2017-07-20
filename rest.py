@@ -100,23 +100,26 @@ with tf.control_dependencies(update_ops):
 
 
 sess = tf.Session()
+saver = tf.train.Saver()
 
 def resetSession() :
+  print "Resetting session ..."
   sess.run( tf.global_variables_initializer() )
+  print "... done."
 
-resetSession()
+def saveSession() :
+  print "Saving session ..."
+  saver.save(sess,"meta-data/model")
+  print "... done."
 
-
-
-
-
-def get_mnist_data() :
-  from tensorflow.examples.tutorials.mnist import input_data
-  return input_data.read_data_sets('./cache', one_hot=True)
-
-mnist = get_mnist_data()
-
-
+def restoreSession() :
+  print "Restoring session ..."
+  try :
+    saver.restore(sess,"meta-data/model")
+  except :
+    print "Can't restore.  Resetting."
+    resetSession()
+  print "... done."
 
 
 def doEpochOfTraining( loss, train, batches=55000/100, batch_size=100, rate=LEARNING_RATE ) :
@@ -127,10 +130,24 @@ def doEpochOfTraining( loss, train, batches=55000/100, batch_size=100, rate=LEAR
 
 
 
+
+
+
+restoreSession()
+
+
+def get_mnist_data() :
+  from tensorflow.examples.tutorials.mnist import input_data
+  return input_data.read_data_sets('./cache', one_hot=True)
+
+mnist = get_mnist_data()
+
+
 if __name__ == "__main__" :
   print "Start training test ..."
-  doEpochOfTraining( loss_6 , train_6 , batches=1 , batch_size=5 )
+  doEpochOfTraining( loss_6 , train_6 , batches=10 , batch_size=50 )
   print "... finished training test."
+  saveSession()
   exit()
 
 
@@ -242,24 +259,27 @@ class ResetSession:
       all_embeddings = []
       resp.body = json.dumps( { 'response': 'done'} )
 
+class RestoreSession:
+    def on_get(self, req, resp) :
+      restoreSession();
+      resp.body = json.dumps( { 'response': 'done'} )
 
+class SaveSession:
+    def on_get(self, req, resp) :
+      saveSession();
+      resp.body = json.dumps( { 'response': 'done'} )
 
 
 def updateEmbeddings() :
     global all_embeddings
     all_embeddings = sess.run(conv5e,feed_dict={x0:mnist.test.images} ).reshape([-1,SIZE])
 
+
 def getEmbeddings() :
     global all_embeddings
     if len(all_embeddings) == 0 :
       updateEmbeddings()
     return all_embeddings
-
-
-class UpdateEmbeddings :
-    def on_get(self, req, resp):
-      updateEmbeddings()
-      resp.body = json.dumps( { 'response': 'done'} )
 
 def calculateDistance(index1,index2) :
     return spatial.distance.cosine( index1, index2 )
@@ -296,7 +316,8 @@ api.add_route('/view/{file_name}', Display())
 api.add_route('/layer{layer}/{index}/{junk}', LayerImage())
 api.add_route('/learn/{index}', DoLearning())
 api.add_route('/reset_session', ResetSession())
-api.add_route('/update_embeddings', UpdateEmbeddings())
+api.add_route('/save_session', SaveSession())
+api.add_route('/restore_session', RestoreSession())
 api.add_route('/similar/{index}', Similar())
 api.add_route('/difference/{positive}/{negative}', Difference())
 api.add_route('/blend/{a_value}/{b_value}/{amount}', BlendImage())
