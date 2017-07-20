@@ -13,13 +13,13 @@
         <button type="button" class="btn btn-primary btn-sm" ng-click="randomizeImage()">Randomize Image</button>
         Iterations <input ng-model="data.iterations" type="text">
         <hr>
-        <p>Original images : 1024 data points.</p>
+        <p>Original images : [32x32x1] </p>
         <div>
 	        <span ng-repeat="index in data.images">
 	          	<img class="mnist" src="/layer-1/{{index}}/{{0}}" ng-click="similar(index)"></img>
 	        </span>
 	</div>
-        <p>Noise images : [32x32x1], 2% data corruption</p>
+        <p>Noise images : [32x32x1] : 2% data corruption</p>
         <div>
 	        <span ng-repeat="index in data.images">
 	          	<img class="mnist" src="/layer0/{{index}}/{{0}}"></img>
