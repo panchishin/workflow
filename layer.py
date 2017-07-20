@@ -6,10 +6,10 @@ def parameter_count( shape , name="") :
 xavier = tf.contrib.layers.xavier_initializer_conv2d()
 def weight_variable(shape, name="Weight_Variable"):
   parameter_count(shape,name)
-  return tf.Variable( xavier(shape=shape), name=name)
+  return tf.get_variable( initializer=xavier(shape=shape), name=name)
 
 def bias_variable(shape, name="Bias_Variable"):
-  return tf.Variable( tf.constant(0.1, shape=shape), name=name)
+  return tf.get_variable( initializer=tf.constant(0.0, shape=shape), name=name)
 
 def upscaleBilinear( img_in, method=tf.image.ResizeMethod.BILINEAR, scale=2, align_corners=True ) :
   return upscaleFlat(img_in,method,scale,align_corners)
