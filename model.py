@@ -30,64 +30,25 @@ def decode( image, layers_in, layers_out=0, width=3, reuse=True ) :
     return image
 
 
-conv5a = encode( x_noisy , 1 , reuse=False)
-conv5b = encode( conv5a , 2 , reuse=False )
-conv5c = encode( conv5b , 4 , reuse=False )
-conv5d = encode( conv5c , 8 , reuse=False )
-conv5e = encode( conv5d , 16 , reuse=False )
-deconv5a = decode( conv5e , 32 , reuse=False )
-deconv5b = decode( deconv5a , 16 , reuse=False )
-deconv5c = decode( deconv5b , 8 , reuse=False )
-deconv5d = decode( deconv5c , 4 , reuse=False )
-deconv5e = decode( deconv5d , 2 , reuse=False )
-
-x_out_5 = deconv5e
-
-conv4a = encode( x_noisy , 1 )
-conv4b = encode( conv4a , 2 )
-conv4c = encode( conv4b , 4 )
-conv4d = encode( conv4c , 8 )
-deconv4a = decode( conv4d , 16 )
-deconv4b = decode( deconv4a , 8 )
-deconv4c = decode( deconv4b , 4 )
-deconv4d = decode( deconv4c , 2 )
-
-x_out_4 = deconv4d
-
-conv3a = encode( x_noisy , 1 )
-conv3b = encode( conv3a , 2 )
-conv3c = encode( conv3b , 4 )
-deconv3a = decode( conv3c , 8 )
-deconv3b = decode( deconv3a , 4 )
-deconv3c = decode( deconv3b , 2 )
-
-x_out_3 = deconv3c
-
-conv2a = encode( x_noisy , 1 )
-conv2b = encode( conv2a , 2 )
-deconv2a = decode( conv2b , 4 )
-deconv2b = decode( deconv2a , 2 )
-
-x_out_2 = deconv2b
-
-conv1a = encode( x_noisy , 1 )
-deconv1a = decode( conv1a , 2 )
-
-x_out_1 = deconv1a
+def autoencode(input,target,depth,reuse=True) :
+  autoencoding_layer = [input]
+  for index in range(depth) :
+    autoencoding_layer.append( encode( autoencoding_layer[-1] , 2**index , reuse=reuse) )
+  embedding = autoencoding_layer[-1]
+  for index in range(depth,0,-1) :
+    autoencoding_layer.append( decode( autoencoding_layer[-1] , 2**index , reuse=reuse) )
+  result = autoencoding_layer[-1]
+  loss = tf.log( tf.reduce_mean( tf.square( target - result ) ) )
+  return result,loss,embedding
 
 
-loss_1_raw = tf.log( tf.reduce_mean( tf.square( x_in - x_out_1 ) ) )
-loss_2_raw = tf.log( tf.reduce_mean( tf.square( x_in - x_out_2 ) ) )
-loss_3_raw = tf.log( tf.reduce_mean( tf.square( x_in - x_out_3 ) ) )
-loss_4_raw = tf.log( tf.reduce_mean( tf.square( x_in - x_out_4 ) ) )
-loss_5_raw = tf.log( tf.reduce_mean( tf.square( x_in - x_out_5 ) ) )
+x_out_5,loss_5,conv5e = autoencode(x_noisy,x_in,5,False)
+x_out_4,loss_4,_ = autoencode(x_noisy,x_in,4)
+x_out_3,loss_3,_ = autoencode(x_noisy,x_in,3)
+x_out_2,loss_2,_ = autoencode(x_noisy,x_in,2)
+x_out_1,loss_1,_ = autoencode(x_noisy,x_in,1)
 
-loss_1 = loss_1_raw
-loss_2 = loss_2_raw
-loss_3 = loss_3_raw
-loss_4 = loss_4_raw
-loss_5 = loss_5_raw
-loss_6 = loss_5_raw + loss_4_raw + loss_3_raw + loss_2_raw + loss_1_raw
+loss_6 = loss_5 + loss_4 + loss_3 + loss_2 + loss_1
 
 update_ops   = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 with tf.control_dependencies(update_ops):
