@@ -19,14 +19,14 @@ x_noisy = layer.high_low_noise( x_in , HIGH_LOW_NOISE)
 def encode( image, layers_in, layers_out=0, width=3, reuse=True ) :
   with tf.variable_scope( "conv"+str(layers_in) , reuse=reuse ) :
     layers_out = layers_in * 2 if layers_out == 0 else layers_out
-    image = layer.conv_relu( image , layers_in , layers_out , stride=2, width=width )
+    image = layer.conv_relu( image , layers_in , layers_out , stride=2, width=width , name="stage1" )
     return image
 
 def decode( image, layers_in, layers_out=0, width=3, reuse=True ) :
   with tf.variable_scope( "deconv"+str(layers_in) , reuse=reuse ) :
     layers_out = layers_in / 2 if layers_out == 0 else layers_out
     image = layer.upscaleFlat( image , scale=2 )
-    image = layer.conv_relu( image , layers_in , layers_out , width=width )
+    image = layer.conv_relu( image , layers_in , layers_out , width=width , name="stage1" )
     return image
 
 
