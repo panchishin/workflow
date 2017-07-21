@@ -87,7 +87,7 @@ loss_2 = loss_2_raw
 loss_3 = loss_3_raw
 loss_4 = loss_4_raw
 loss_5 = loss_5_raw
-loss_6 = loss_5_raw * 4 + loss_4_raw * 3 + loss_3_raw * 2 + loss_2_raw + loss_1_raw
+loss_6 = loss_5_raw + loss_4_raw + loss_3_raw + loss_2_raw + loss_1_raw
 
 update_ops   = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 with tf.control_dependencies(update_ops):
