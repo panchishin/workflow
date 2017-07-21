@@ -5,9 +5,9 @@ import random
 import numpy as np
 from scipy import spatial
 import model
+import session
 
-
-model.restoreSession()
+session.restoreSession()
 
 def get_mnist_data() :
   from tensorflow.examples.tutorials.mnist import input_data
@@ -21,7 +21,7 @@ def getImageWithIndex(index) :
     return mnist.test.images[index:index+1]
 
 def getExample(index,layer) :
-    return model.sess.run(layer,feed_dict={model.x0:getImageWithIndex(index)} ).reshape([model.SIZE,model.SIZE])
+    return session.sess.run(layer,feed_dict={model.x0:getImageWithIndex(index)} ).reshape([model.SIZE,model.SIZE])
 
 def arrayToImage(data) :
     import scipy.misc
@@ -42,10 +42,6 @@ Define the rest endpoints
 ================================
 """
 all_embeddings = []
-
-class Ping:
-    def on_get(self, req, resp):
-        resp.body = json.dumps( { 'response': 'ping' } )
 
 
 class Display:
@@ -80,10 +76,10 @@ class BlendImage:
     def on_get(self, req, resp, a_value, b_value, amount) :
       try :
         amount = int(amount) / 100.0
-        a_embed = model.sess.run(model.conv5e,feed_dict={model.x0:getImageWithIndex(int(a_value))} )
-        b_embed = model.sess.run(model.conv5e,feed_dict={model.x0:getImageWithIndex(int(b_value))} )
+        a_embed = session.sess.run(model.conv5e,feed_dict={model.x0:getImageWithIndex(int(a_value))} )
+        b_embed = session.sess.run(model.conv5e,feed_dict={model.x0:getImageWithIndex(int(b_value))} )
         blend_embed = a_embed * amount + b_embed * ( 1 - amount )
-        output = model.sess.run(model.x_out_5,feed_dict={model.conv5e:blend_embed,model.x0:getImageWithIndex(int(a_value))} )
+        output = session.sess.run(model.x_out_5,feed_dict={model.conv5e:blend_embed,model.x0:getImageWithIndex(int(a_value))} )
         falconRespondArrayAsImage( output.reshape([model.SIZE,model.SIZE]) , resp )
       except :
         pass
@@ -92,7 +88,7 @@ class BlendImage:
 class DoLearning:
     def on_get(self, req, resp, index) :
         print "TRAINING WITH",index
-        model.doEpochOfTraining(
+        session.doEpochOfTraining(
           [model.loss_1,model.loss_2,model.loss_3,model.loss_4,model.loss_5,model.loss_6][int(index)],
           [model.train_1,model.train_2,model.train_3,model.train_4,model.train_5,model.train_6][int(index)],
           mnist.train)
@@ -102,25 +98,25 @@ class DoLearning:
 
 class ResetSession:
     def on_get(self, req, resp) :
-      model.resetSession();
+      session.resetSession();
       global all_embeddings
       all_embeddings = []
       resp.body = json.dumps( { 'response': 'done'} )
 
 class RestoreSession:
     def on_get(self, req, resp) :
-      model.restoreSession();
+      session.restoreSession();
       resp.body = json.dumps( { 'response': 'done'} )
 
 class SaveSession:
     def on_get(self, req, resp) :
-      model.saveSession();
+      session.saveSession();
       resp.body = json.dumps( { 'response': 'done'} )
 
 
 def updateEmbeddings() :
     global all_embeddings
-    all_embeddings = model.sess.run(model.conv5e,feed_dict={model.x0:mnist.test.images} ).reshape([-1,model.SIZE])
+    all_embeddings = session.sess.run(model.conv5e,feed_dict={model.x0:mnist.test.images} ).reshape([-1,model.SIZE])
 
 
 def getEmbeddings() :
@@ -159,7 +155,6 @@ Add the endpoints to the service
 ================================
 """
 api = falcon.API()
-api.add_route('/ping', Ping())
 api.add_route('/view/{file_name}', Display())
 api.add_route('/layer{layer}/{index}/{junk}', LayerImage())
 api.add_route('/learn/{index}', DoLearning())
