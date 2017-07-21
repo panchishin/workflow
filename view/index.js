@@ -10,12 +10,13 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         'difference_images' : [],
         'sele' : 1,
         'prev' : 2,
+        'modulus' : 1,
         'blend' : [0,10,20,30,40,50,60,70,80,90,100],
     }
 
     $scope.randomizeImage = function() {
         $scope.data.images = []
-        for (index=0 ; index < 10 ; index++ ) {
+        for (index=0 ; index < 5 ; index++ ) {
             $scope.data.images.push( Math.floor( Math.random() * 10000 ) )
         }
     }
@@ -65,6 +66,10 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             console.log("...DONE");
             $scope.data.training_sessions[index] += 1;
             $scope.randomizeImage();
+
+            if ( $scope.data.training_sessions[index] % (1*$scope.data.modulus) != 0 ) {
+                setTimeout( function() { $scope.learn(index) } , 3000 );
+            }
         })
     }
 
