@@ -11,7 +11,6 @@
         <button type="button" class="btn btn-primary btn-sm" ng-click="reset_session()">Reset Net</button>
         <button type="button" class="btn btn-primary btn-sm" ng-click="restore_session()">Restore Net</button>
         <button type="button" class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
-        <button type="button" class="btn btn-primary btn-sm" ng-click="randomizeImage()">Randomize Image</button>
         <input type="text" ng-model="data.modulus">
         <hr>
         <p>Original images : [32x32x1] </p>
@@ -19,48 +18,54 @@
 	        <span ng-repeat="index in data.images">
 	          	<img class="mnist" src="/layer-1/{{index}}/{{0}}" ng-click="similar(index)"></img>
 	        </span>
+	        <button type="button" class="btn btn-primary btn-sm" ng-click="randomizeImage()">Random</button>
+	        <button ng-hide="toggle_layer_display" type="button" class="btn btn-primary btn-sm" ng-click="toggle_layer_display=!toggle_layer_display">Show More</button>
+	        <button ng-show="toggle_layer_display" type="button" class="btn btn-primary btn-sm" ng-click="toggle_layer_display=!toggle_layer_display">Show Less</button>
 	</div>
-        <p>Noise images : [32x32x1] : 2% data corruption</p>
-        <div>
-	        <span ng-repeat="index in data.images">
-	          	<img class="mnist" src="/layer0/{{index}}/{{0}}"></img>
-	        </span>
-	        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(0)">Train Layer</button>
+	<div ng-show="toggle_layer_display">
+	        <p>Noise images : [32x32x1] : 2% data corruption</p>
+	        <div>
+		        <span ng-repeat="index in data.images">
+		          	<img class="mnist" src="/layer0/{{index}}/{{0}}"></img>
+		        </span>
+		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(0)">Train Layer</button>
+		</div>
+	        <p>1st Layer : [16x16x2] : {{data.training_sessions[0]}} epochs</p>
+	        <div>
+		        <span ng-repeat="index in data.images">
+		          	<img class="mnist" src="/layer1/{{index}}/{{data.training_sessions}}"></img>
+		        </span>
+		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(1)">Train Layer</button>
+	        </div>
+	        <p>2nd Layer : [8x8x4] : {{data.training_sessions[1]}} epochs</p>
+	        <div>
+		        <span ng-repeat="index in data.images">
+		          	<img class="mnist" src="/layer2/{{index}}/{{data.training_sessions}}"></img>
+		        </span>
+		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(2)">Train Layer</button>
+	        </div>
+	        <p>3rd Layer : [4x4x8] : {{data.training_sessions[2]}} epochs</p>
+	        <div>
+		        <span ng-repeat="index in data.images">
+		          	<img class="mnist" src="/layer3/{{index}}/{{data.training_sessions}}"></img>
+		        </span>
+		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(3)">Train Layer</button>
+	        </div>
+	        <p>4th Layer : [2x2x16] : {{data.training_sessions[3]}} epochs</p>
+	        <div>
+		        <span ng-repeat="index in data.images">
+		          	<img class="mnist" src="/layer4/{{index}}/{{data.training_sessions}}"></img>
+		        </span>
+		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(4)">Train Layer</button>
+	        </div>
 	</div>
-        <p>1st Layer : [16x16x2] : {{data.training_sessions[0]}} epochs</p>
-        <div>
-	        <span ng-repeat="index in data.images">
-	          	<img class="mnist" src="/layer1/{{index}}/{{data.training_sessions}}"></img>
-	        </span>
-	        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(1)">Train Layer</button>
-        </div>
-        <p>2nd Layer : [8x8x4] : {{data.training_sessions[1]}} epochs</p>
-        <div>
-	        <span ng-repeat="index in data.images">
-	          	<img class="mnist" src="/layer2/{{index}}/{{data.training_sessions}}"></img>
-	        </span>
-	        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(2)">Train Layer</button>
-        </div>
-        <p>3rd Layer : [4x4x8] : {{data.training_sessions[2]}} epochs</p>
-        <div>
-	        <span ng-repeat="index in data.images">
-	          	<img class="mnist" src="/layer3/{{index}}/{{data.training_sessions}}"></img>
-	        </span>
-	        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(3)">Train Layer</button>
-        </div>
-        <p>4th Layer : [2x2x16] : {{data.training_sessions[3]}} epochs</p>
-        <div>
-	        <span ng-repeat="index in data.images">
-	          	<img class="mnist" src="/layer4/{{index}}/{{data.training_sessions}}"></img>
-	        </span>
-	        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(4)">Train Layer</button>
-        </div>
+
         <p>5th Layer : [1x1x32] : {{data.training_sessions[4]}} epochs</p>
         <div>
 	        <span ng-repeat="index in data.images">
 	          	<img class="mnist" src="/layer5/{{index}}/{{data.training_sessions}}" ng-click="similar(index)"></img>
 	        </span>
-	        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(5)">Train All</button>
+	        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(5)">Train</button>
         </div>
         <p>All Layers : {{data.training_sessions[5]}} epochs</p>
         <p>Similar images</p>

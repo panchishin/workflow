@@ -11,12 +11,12 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         'sele' : 1,
         'prev' : 2,
         'modulus' : 1,
-        'blend' : [0,10,20,30,40,50,60,70,80,90,100],
+        'blend' : [0,11,22,33,44,55,66,77,88,100],
     }
 
     $scope.randomizeImage = function() {
         $scope.data.images = []
-        for (index=0 ; index < 5 ; index++ ) {
+        for (index=0 ; index < 10 ; index++ ) {
             $scope.data.images.push( Math.floor( Math.random() * 10000 ) )
         }
     }
