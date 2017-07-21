@@ -99,19 +99,19 @@ class DoLearning:
 
 class ResetSession:
     def on_get(self, req, resp) :
-      resetSession();
+      model.resetSession();
       global all_embeddings
       all_embeddings = []
       resp.body = json.dumps( { 'response': 'done'} )
 
 class RestoreSession:
     def on_get(self, req, resp) :
-      restoreSession();
+      model.restoreSession();
       resp.body = json.dumps( { 'response': 'done'} )
 
 class SaveSession:
     def on_get(self, req, resp) :
-      saveSession();
+      model.saveSession();
       resp.body = json.dumps( { 'response': 'done'} )
 
 
