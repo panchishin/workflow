@@ -6,6 +6,7 @@ import numpy as np
 from scipy import spatial
 import model
 import session
+import embeddings
 
 session.restoreSession()
 
@@ -14,7 +15,7 @@ def get_mnist_data() :
   return input_data.read_data_sets('./cache', one_hot=True)
 
 mnist = get_mnist_data()
-
+embeddings.data_set = mnist.test.images
 
 
 def getImageWithIndex(index) :
@@ -41,8 +42,6 @@ print """
 Define the rest endpoints
 ================================
 """
-all_embeddings = []
-
 
 class Display:
     def on_get(self, req, resp, file_name):
@@ -92,15 +91,13 @@ class DoLearning:
           [model.loss_1,model.loss_2,model.loss_3,model.loss_4,model.loss_5,model.loss_6][int(index)],
           [model.train_1,model.train_2,model.train_3,model.train_4,model.train_5,model.train_6][int(index)],
           mnist.train)
-        global all_embeddings
-        all_embeddings = []
+        embeddings.reset()
         resp.body = json.dumps( { 'response': 'done'} )
 
 class ResetSession:
     def on_get(self, req, resp) :
       session.resetSession();
-      global all_embeddings
-      all_embeddings = []
+      embeddings.reset()
       resp.body = json.dumps( { 'response': 'done'} )
 
 class RestoreSession:
@@ -114,37 +111,16 @@ class SaveSession:
       resp.body = json.dumps( { 'response': 'done'} )
 
 
-def updateEmbeddings() :
-    global all_embeddings
-    all_embeddings = session.sess.run(model.conv5e,feed_dict={model.x0:mnist.test.images} ).reshape([-1,model.SIZE])
-
-
-def getEmbeddings() :
-    global all_embeddings
-    if len(all_embeddings) == 0 :
-      updateEmbeddings()
-    return all_embeddings
-
-def calculateDistance(index1,index2) :
-    return spatial.distance.cosine( index1, index2 )
-
-def nearestNeighbour(embedding) :
-    the_embeddings = getEmbeddings()
-    index_list = range(the_embeddings.shape[0])
-    distances = np.array([ calculateDistance(embedding,the_embeddings[other]) for other in index_list ])
-    nearest = np.argsort( distances )[:10]
-    return np.array(index_list)[nearest]
-
 class Similar:
     def on_get(self, req, resp, index):
-        the_embeddings = getEmbeddings()
-        names = nearestNeighbour( the_embeddings[int(index)] ).tolist()
+        the_embeddings = embeddings.getEmbeddings()
+        names = embeddings.nearestNeighbour( the_embeddings[int(index)] ).tolist()
         resp.body = json.dumps( { 'response' : names } )
 
 class Difference:
     def on_get(self, req, resp, positive, negative):
-        the_embeddings = getEmbeddings()
-        names = nearestNeighbour( the_embeddings[int(positive)] * 2 - the_embeddings[int(negative)] ).tolist()
+        the_embeddings = embeddings.getEmbeddings()
+        names = embeddings.nearestNeighbour( the_embeddings[int(positive)] * 2 - the_embeddings[int(negative)] ).tolist()
         resp.body = json.dumps( { 'response' : names } )
 
 
