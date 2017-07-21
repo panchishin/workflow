@@ -36,7 +36,7 @@ def avg_pool(x,stride=2, padding='SAME', name="Avg_Pool"):
 
 def conv( x , layers_in , layers_out , width=6 , stride=1, padding='SAME', name="conv" ):
   w = weight_variable( [width, width, layers_in, layers_out], name=(name + "_weight")) 
-  b = bias_variable( [layers_out] ) 
+  b = bias_variable( [layers_out], name=(name + "_bias")) 
   return tf.add( tf.nn.conv2d( x, w, strides= [1, stride, stride, 1], padding=padding ) , b , name=name)
 
 def deconv( x , layers_in , layers_out , width , shape , stride=1, padding='VALID', name="deconv" ):
