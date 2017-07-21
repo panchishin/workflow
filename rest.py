@@ -78,12 +78,15 @@ class LayerImage:
 
 class BlendImage:
     def on_get(self, req, resp, a_value, b_value, amount) :
+      try :
         amount = int(amount) / 100.0
         a_embed = model.sess.run(model.conv5e,feed_dict={model.x0:getImageWithIndex(int(a_value))} )
         b_embed = model.sess.run(model.conv5e,feed_dict={model.x0:getImageWithIndex(int(b_value))} )
         blend_embed = a_embed * amount + b_embed * ( 1 - amount )
         output = model.sess.run(model.x_out_5,feed_dict={model.conv5e:blend_embed,model.x0:getImageWithIndex(int(a_value))} )
         falconRespondArrayAsImage( output.reshape([model.SIZE,model.SIZE]) , resp )
+      except :
+        pass
 
 
 class DoLearning:
