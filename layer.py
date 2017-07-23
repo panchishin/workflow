@@ -57,8 +57,8 @@ def conv_relu( x , layers_in , layers_out , width=6 , stride=1, padding='SAME', 
 def relu_deconv( x , layers_in , layers_out , width , shape , stride=1, padding='VALID', name="relu_deconv" ):
   return deconv( tf.nn.relu(x) , layers_in , layers_out , width , shape , stride, padding, name )
 
-def batch_normalization( x, training, momentum=0.9 ) :
-  return tf.layers.batch_normalization( x, training=training, momentum=momentum )
+def batch_normalization( x, training, momentum=0.9 , name="norm" ) :
+  return tf.layers.batch_normalization( x, training=training, momentum=momentum, name=name )
 
 def single_resnet_block( x, layers, width , training, momentum=0.9, name="single_resnet_block" ) :
   result = batch_normalization( x , training=training, momentum=momentum )
@@ -91,5 +91,5 @@ def high_low_noise( value , fraction ) :
 
 def fully_connected( x , size_in , size_out, name="fully_connected" ):
   W = weight_variable( [size_in, size_out], name=(name + "_weight") )
-  b = bias_variable( [size_out] )
+  b = bias_variable( [size_out], name=(name + "_bias") )
   return tf.add( tf.matmul(x, W) , b , name=name )
