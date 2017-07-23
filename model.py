@@ -18,14 +18,16 @@ x_noisy = layer.high_low_noise( x_in , HIGH_LOW_NOISE)
 def encode( image, layers_in, layers_out=0, width=3, reuse=True ) :
   with tf.variable_scope( "conv"+str(layers_in) , reuse=reuse ) :
     layers_out = layers_in * 2 if layers_out == 0 else layers_out
-    image = layer.conv_relu( image , layers_in , layers_out , stride=2, width=width , name="stage1" )
+    image = layer.conv( image , layers_in , layers_out , stride=2, width=width , name="stage1" )
+    image = tf.tanh( image )
     return image
 
 def decode( image, layers_in, layers_out=0, width=3, reuse=True ) :
   with tf.variable_scope( "deconv"+str(layers_in) , reuse=reuse ) :
     layers_out = layers_in / 2 if layers_out == 0 else layers_out
     image = layer.upscaleFlat( image , scale=2 )
-    image = layer.conv_relu( image , layers_in , layers_out , width=width , name="stage1" )
+    image = layer.conv( image , layers_in , layers_out , width=width , name="stage1" )
+    image = tf.tanh( image )
     return image
 
 
@@ -37,7 +39,7 @@ def autoencode(input,target,depth,reuse=True) :
   for index in range(depth,0,-1) :
     autoencoding_layer.append( decode( autoencoding_layer[-1] , 2**index , reuse=reuse) )
   result = autoencoding_layer[-1]
-  loss = tf.log( tf.reduce_mean( tf.square( target - result ) ) )
+  loss = tf.log( tf.reduce_mean( target * tf.square( target - result ) ) + tf.reduce_mean( (1-target) * tf.square( target - result ) ) )
   return result,loss,embedding
 
 
