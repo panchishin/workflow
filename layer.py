@@ -1,7 +1,11 @@
 import tensorflow as tf
 
+SHOW_SIZE = False
+
+
 def parameter_count( shape , name="") :
-  print "Parametes ",shape,", Count :",reduce(lambda x, y: x*y, shape ),", Name",name
+  if SHOW_SIZE :
+    print "Parametes ",shape,", Count :",reduce(lambda x, y: x*y, shape ),", Name",name
 
 xavier = tf.contrib.layers.xavier_initializer_conv2d()
 def weight_variable(shape, name="Weight_Variable"):
