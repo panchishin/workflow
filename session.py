@@ -1,7 +1,7 @@
 import tensorflow as tf
 import model
 
-LEARNING_RATE = 1e-2
+LEARNING_RATE = 1e-3
 
 sess = None
 
