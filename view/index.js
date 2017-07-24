@@ -3,16 +3,17 @@ var imageWorkflow = angular.module('imageWorkflow' , []);
 
 imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$interval) {
 
+    $scope.layer_display = [];
     $scope.data = {
     	'images' : [],
         'training_sessions' : [0,0,0,0,0,0,0],
-        'similar_images' : [],
         'difference_images' : [],
         'sele' : 1,
         'prev' : 2,
-        'modulus' : 1,
         'blend' : [0,11,22,33,44,55,66,77,88,100],
-    }
+    };
+    $scope.similar_images = [];
+    $scope.label_list = [];
 
     $scope.randomizeImage = function() {
         $scope.data.images = []
@@ -48,15 +49,10 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         console.log("calling similar ...");
         $http({method:"GET" , url : "/similar/"+index , cache: false}).then(function successCallback(result) {
             console.log("... done");
-            $scope.data.similar_images = result.data.response
-        })
-    }
-
-    $scope.subtract = function(index) {
-        console.log("calling subtract ...");
-        $http({method:"GET" , url : "/difference/"+$scope.data.similar_images[0]+"/"+index , cache: false}).then(function successCallback(result) {
-            console.log("... done");
-            $scope.data.difference_images = result.data.response
+            $scope.similar_images = []
+            for ( var index in result.data.response ) {
+              $scope.similar_images.push( { 'id' : result.data.response[index] , 'state' : 1 } );
+            }
         })
     }
 
@@ -66,11 +62,34 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             console.log("...DONE");
             $scope.data.training_sessions[index] += 1;
             $scope.randomizeImage();
-
-            if ( $scope.data.training_sessions[index] % (1*$scope.data.modulus) != 0 ) {
-                setTimeout( function() { $scope.learn(index) } , 3000 );
-            }
         })
     }
+
+    $scope.add_label = function(label) {
+        if ( $scope.label_list.indexOf(label) == -1 ) {
+            $scope.label_list.push(label);
+            $scope.label_list.sort();
+        }
+    }
+
+    $scope.add_to_label = function(label) {
+        console.log("Add these to label " + label);
+        for ( var index in $scope.similar_images ) {
+            var data = $scope.similar_images[index];
+            if ( data.state == 1 ) {
+                console.log("Found " + data.id + " as positive");
+            }
+        }
+        console.log("Subtracting these to label " + label);
+        for ( var index in $scope.similar_images ) {
+            var data = $scope.similar_images[index];
+            if ( data.state == 0 ) {
+                console.log("Found " + data.id + " as negative");
+            }
+        }
+        $scope.similar_images = [];
+
+    }
+
 
 });

@@ -7,83 +7,68 @@
 	<link rel="stylesheet" type="text/css" href="/view/index.css"/>
 </head>
 <body ng-controller="mainController">
-
-        <button type="button" class="btn btn-primary btn-sm" ng-click="reset_session()">Reset Net</button>
-        <button type="button" class="btn btn-primary btn-sm" ng-click="restore_session()">Restore Net</button>
-        <button type="button" class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
-        <input type="text" ng-model="data.modulus">
-        <hr>
-        <p>Original images : [32x32x1] </p>
-        <div>
-	        <span ng-repeat="index in data.images">
-	          	<img class="mnist" src="/layer-1/{{index}}/{{0}}" ng-click="similar(index)"></img>
-	        </span>
-	        <button type="button" class="btn btn-primary btn-sm" ng-click="randomizeImage()">Random</button>
-	        <button ng-hide="toggle_layer_display" type="button" class="btn btn-primary btn-sm" ng-click="toggle_layer_display=!toggle_layer_display">Show More</button>
-	        <button ng-show="toggle_layer_display" type="button" class="btn btn-primary btn-sm" ng-click="toggle_layer_display=!toggle_layer_display">Show Less</button>
+	<h1>Session Controls</h1>
+	<div class="session_controls">
+		<button class="btn btn-primary btn-sm" ng-click="reset_session()">Reset Net</button>
+		<button class="btn btn-primary btn-sm" ng-click="restore_session()">Restore Net</button>
+		<button class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
 	</div>
-	<div ng-show="toggle_layer_display">
-	        <p>Noise images : [32x32x1] : 2% data corruption</p>
-	        <div>
-		        <span ng-repeat="index in data.images">
-		          	<img class="mnist" src="/layer0/{{index}}/{{0}}"></img>
-		        </span>
-		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(0)">Train Layer</button>
+
+	<h1>Find Related Images</h1>
+	<div class="find_related_images">
+		<div class="imageline">
+			<div class="texty"><p>Original</p></div>
+			<span ng-repeat="index in data.images">
+				<img class="mnist" src="/layer-1/{{index}}/{{0}}" ng-click="similar(index)"></img>
+			</span>
+			<button class="btn btn-primary btn-sm" ng-click="randomizeImage()">Random</button>
+			<button ng-show="layer_display.length == 0" type="button" class="btn btn-primary btn-sm" ng-click="layer_display=[0,1,2,3,4,5]">Show Details</button>
+			<button ng-hide="layer_display.length == 0" type="button" class="btn btn-primary btn-sm" ng-click="layer_display=[]">Hide Details</button>
 		</div>
-	        <p>1st Layer : [16x16x2] : {{data.training_sessions[0]}} epochs</p>
-	        <div>
-		        <span ng-repeat="index in data.images">
-		          	<img class="mnist" src="/layer1/{{index}}/{{data.training_sessions}}"></img>
-		        </span>
-		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(1)">Train Layer</button>
-	        </div>
-	        <p>2nd Layer : [8x8x4] : {{data.training_sessions[1]}} epochs</p>
-	        <div>
-		        <span ng-repeat="index in data.images">
-		          	<img class="mnist" src="/layer2/{{index}}/{{data.training_sessions}}"></img>
-		        </span>
-		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(2)">Train Layer</button>
-	        </div>
-	        <p>3rd Layer : [4x4x8] : {{data.training_sessions[2]}} epochs</p>
-	        <div>
-		        <span ng-repeat="index in data.images">
-		          	<img class="mnist" src="/layer3/{{index}}/{{data.training_sessions}}"></img>
-		        </span>
-		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(3)">Train Layer</button>
-	        </div>
-	        <p>4th Layer : [2x2x16] : {{data.training_sessions[3]}} epochs</p>
-	        <div>
-		        <span ng-repeat="index in data.images">
-		          	<img class="mnist" src="/layer4/{{index}}/{{data.training_sessions}}"></img>
-		        </span>
-		        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(4)">Train Layer</button>
-	        </div>
+		<div ng-repeat="layer in layer_display" class="imageline">
+			<div class="texty">
+				<p ng-show="layer == 0">Noise images</p>
+				<p ng-show="layer > 0">Layer {{layer}} : {{data.training_sessions[layer]}} epochs</p>
+			</div>
+			<span ng-repeat="index in data.images">
+				<img class="mnist" src="/layer{{layer}}/{{index}}/{{data.training_sessions[layer]}}" ng-click="similar(index)"></img>
+			</span>
+			<button ng-hide="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train Layer {{layer+1}}</button>
+			<button ng-show="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train All ({{data.training_sessions[5]}} epochs)</button>
+		</div>
 	</div>
 
-        <p>5th Layer : [1x1x32] : {{data.training_sessions[4]}} epochs</p>
-        <div>
-	        <span ng-repeat="index in data.images">
-	          	<img class="mnist" src="/layer5/{{index}}/{{data.training_sessions}}" ng-click="similar(index)"></img>
-	        </span>
-	        <button type="button" class="btn btn-primary btn-sm" ng-click="learn(5)">Train</button>
-        </div>
-        <p>All Layers : {{data.training_sessions[5]}} epochs</p>
-        <p>Similar images</p>
-        <div>
-	        <span ng-repeat="index in data.similar_images">
-	          	<img class="mnist" src="/layer-1/{{index}}/{{0}}" ng-click="subtract(index)"></img>
-	        </span>
+	<h1>Find Related Labels</h1>
+	<div class="label_area">
+		<div ng-show="label_list.length == 0">
+			<p>No labels yet</p>
+		</div>
+		<div ng-show="label_list.length > 0">
+			<span ng-repeat="label in label_list">
+				<button class="btn btn-primary btn-sm label_button">{{label}}</button>
+			</span>
+	  </div>
 	</div>
-        <p>Subtracting image</p>
-        <div>
-	        <span ng-repeat="index in data.difference_images">
-	          	<img class="mnist" src="/layer-1/{{index}}/{{0}}" ng-click="subtract(index)"></img>
-	        </span>
+
+	<h1>Search Results</h1>
+	<div>
+		<div class="imageline" ng-show="similar_images.length == 0">
+			<p>Select an image or label from above</p>
+	  </div>	
+		<div class="imageline" ng-show="similar_images.length > 0">
+		  <div class="texty"><p>Images Found</p></div>
+		  <span ng-repeat="data in similar_images">
+				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}/{{0}}" ng-click="data.state=1-data.state"></img>
+		  </span>
+		</div>
+		<div>
+		  <div class="texty"><p>Add to label</p></div>
+			<span ng-repeat="label in label_list">
+				<button class="btn btn-primary btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
+			</span>
+			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button class="btn btn-primary btn-sm label_button" ng-click="add_label(new_label);add_to_label(new_label);new_label='';">Add</button>
+		</div>
 	</div>
-        <p>Blend image</p>
-        <div>
-	        <span ng-repeat="blending in data.blend">
-	          	<img class="mnist" src="/blend/{{data.sele}}/{{data.prev}}/{{blending}}"></img>
-	        </span>
-	</div></body>
+	
+</body>
 </html>

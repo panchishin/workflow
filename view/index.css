@@ -7,12 +7,45 @@ body {
 button {
     padding : .25em;
     margin : .25em;
-    width : 12em;
+    width : 10em;
+    height : 30px;
 }
+input {
+    width : 5em;
+    margin: 0 0.5em;
+}
+
+button.label_button {
+    width : auto;
+}
+
+p {
+    margin: 0px;
+    margin: 0 0.5em;
+}
+
+p.inline {
+    display: inline-block;
+}
+
+div.texty {
+    width: 10em;
+    display: inline-block;
+}
+
+div.imageline {
+    margin : 1px;
+    height : 33px;
+}
+
+
 img.mnist {
     height : 32px;
     width : 32px;
+    background-color: #FFF;
+    display: inline-block;
 }
-p {
-    margin: 0px;
+
+.not_selected {
+    opacity: .5;
 }
