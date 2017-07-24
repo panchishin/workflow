@@ -13,7 +13,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         'blend' : [0,11,22,33,44,55,66,77,88,100],
     };
     $scope.similar_images = [];
-    $scope.label_list = [];
+    $scope.label_list = {};
 
     $scope.randomizeImage = function() {
         $scope.data.images = []
@@ -66,26 +66,30 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     $scope.add_label = function(label) {
-        if ( $scope.label_list.indexOf(label) == -1 ) {
-            $scope.label_list.push(label);
-            $scope.label_list.sort();
+        if ( $scope.label_list[label] == undefined ) {
+            $scope.label_list[label] = { };
         }
     }
 
+    $scope.label_score = function(label) {
+        var pos = 0;
+        var neg = 0;
+        for( var index in $scope.label_list[label] ) {
+            if ( $scope.label_list[label][index] == 0 ) {
+                neg += 1;
+            } else {
+                pos += 1;
+            }
+        }
+        return '+' + pos + ":-" + neg
+    }
+
     $scope.add_to_label = function(label) {
+
         console.log("Add these to label " + label);
         for ( var index in $scope.similar_images ) {
             var data = $scope.similar_images[index];
-            if ( data.state == 1 ) {
-                console.log("Found " + data.id + " as positive");
-            }
-        }
-        console.log("Subtracting these to label " + label);
-        for ( var index in $scope.similar_images ) {
-            var data = $scope.similar_images[index];
-            if ( data.state == 0 ) {
-                console.log("Found " + data.id + " as negative");
-            }
+            $scope.label_list[label][data.id] = data.state;
         }
         $scope.similar_images = [];
 

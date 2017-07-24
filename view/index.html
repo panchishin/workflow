@@ -14,7 +14,7 @@
 		<button class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
 	</div>
 
-	<h1>Find Related Images</h1>
+	<h1>Image Browser</h1>
 	<div class="find_related_images">
 		<div class="imageline">
 			<div class="texty"><p>Original</p></div>
@@ -38,14 +38,14 @@
 		</div>
 	</div>
 
-	<h1>Find Related Labels</h1>
+	<h1>Labels</h1>
 	<div class="label_area">
-		<div ng-show="label_list.length == 0">
+		<div ng-show="label_list == {}">
 			<p>No labels yet</p>
 		</div>
-		<div ng-show="label_list.length > 0">
-			<span ng-repeat="label in label_list">
-				<button class="btn btn-primary btn-sm label_button">{{label}}</button>
+		<div ng-hide="label_list == {}">
+			<span ng-repeat="(label,label_data) in label_list">
+				<button class="btn btn-primary btn-sm label_button">{{label}} ({{label_score(label)}})</button>
 			</span>
 	  </div>
 	</div>
@@ -63,7 +63,7 @@
 		</div>
 		<div>
 		  <div class="texty"><p>Add to label</p></div>
-			<span ng-repeat="label in label_list">
+			<span ng-repeat="(label,label_data) in label_list">
 				<button class="btn btn-primary btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
 			</span>
 			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button class="btn btn-primary btn-sm label_button" ng-click="add_label(new_label);add_to_label(new_label);new_label='';">Add</button>
