@@ -32,14 +32,15 @@ def doTraining(positive_examples,embeddings) :
   print "Training started",
   for _ in range(20) :
     if doEpoch(positive_examples,embeddings) >= target_correct :
-      print "done training"      
-      return sess.run(
-        label_model.category_out,
-        feed_dict={
-          label_model.emb_in:embeddings.getEmbeddings(),
-          label_model.dropout:1.0
-          }
-        )[:,0]
+      break
+  print "done training"      
+  return sess.run(
+    label_model.category_out,
+    feed_dict={
+      label_model.emb_in:embeddings.getEmbeddings(),
+      label_model.dropout:1.0
+      }
+    )[:,0]
 
 def getPredictiveWeights(positive_examples,negative_examples,embeddings) :
   weights = doTraining(positive_examples,embeddings)
