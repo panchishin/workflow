@@ -1,3 +1,5 @@
+import session
+session.restoreSession()
 import falcon
 import os.path  # for serving html files
 import json
@@ -5,10 +7,9 @@ import random
 import numpy as np
 from scipy import spatial
 import autoencode_model
-import session
 import embeddings
+import label_predict
 
-session.restoreSession()
 
 def get_mnist_data() :
   from tensorflow.examples.tutorials.mnist import input_data
@@ -113,16 +114,23 @@ class SaveSession:
 
 class Similar:
   def on_get(self, req, resp, index):
-    the_embeddings = embeddings.getEmbeddings()
-    names = embeddings.nearestNeighbour( the_embeddings[int(index)] ).tolist()
+    names = embeddings.nearestNeighbourByIndex( int(index) ).tolist()
     resp.body = json.dumps( { 'response' : names } )
 
-class Difference:
-  def on_get(self, req, resp, positive, negative):
-    the_embeddings = embeddings.getEmbeddings()
-    names = embeddings.nearestNeighbour( the_embeddings[int(positive)] * 2 - the_embeddings[int(negative)] ).tolist()
-    resp.body = json.dumps( { 'response' : names } )
+class LabelPredict:
+  def on_post(self, req, resp):
+    data = json.loads( req.stream.read() )
+    result = label_predict.getPredictiveWeights(data["positive"],data["negative"],embeddings)
 
+    likely_weight = result[ ( result < 1. ) * ( result > .5 ) ]
+    likely_index  = np.array(range(result.shape[0]))[ ( result < 1. ) * ( result > .5 ) ]
+    positive = likely_index[np.argsort(likely_weight)[-100::10]].tolist()
+
+    unlikely_weight = result[ ( result > .0 ) * ( result < .5 ) ]
+    unlikely_index  = np.array(range(result.shape[0]))[ ( result > .0 ) * ( result < .5 ) ]
+    negative = unlikely_index[np.argsort(unlikely_weight)[:30:10]].tolist()
+
+    resp.body = json.dumps( { 'response' : { 'positive' : positive[::-1] , 'negative' : negative } } )
 
 
 print """
@@ -138,6 +146,7 @@ api.add_route('/reset_session', ResetSession())
 api.add_route('/save_session', SaveSession())
 api.add_route('/restore_session', RestoreSession())
 api.add_route('/similar/{index}', Similar())
-api.add_route('/difference/{positive}/{negative}', Difference())
 api.add_route('/blend/{a_value}/{b_value}/{amount}', BlendImage())
+api.add_route('/label_predict', LabelPredict())
+
 

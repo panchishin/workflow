@@ -95,5 +95,31 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     }
 
+    $scope.label_predict = function(label) {
+        $scope.data.prev = $scope.data.sele;
+        $scope.data.sele = index;
+        neg_list = [];
+        pos_list = [];
+        for( var index in $scope.label_list[label] ) {
+            if ( $scope.label_list[label][index] == 0 ) {
+                neg_list.push(parseInt(index));
+            } else {
+                pos_list.push(parseInt(index));
+            }
+        }
+        console.log("calling label_predict ...");
+        $http({method:"POST" , url : "/label_predict" , cache: false , data:{positive:pos_list,negative:neg_list} }).then(function successCallback(result) {
+            console.log("... done");
+            $scope.similar_images = []
+            for ( var index in result.data.response.positive ) {
+              $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : 1 } );
+            }
+            for ( var index in result.data.response.negative ) {
+              $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
+            }
+        })
+        $scope.new_label = label;
+    }
+
 
 });
