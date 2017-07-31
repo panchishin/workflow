@@ -1,4 +1,4 @@
-import model
+import autoencode_model
 import session
 
 session.restoreSession()
@@ -12,7 +12,7 @@ mnist = get_mnist_data()
 
 
 print "Start training test ..."
-session.doEpochOfTraining( model.loss_6 , model.train_6 , data_feed=mnist.train, batches=10 , batch_size=50 )
+session.doEpochOfTraining( autoencode_model.loss_6 , autoencode_model.train_6 , data_feed=mnist.train, batches=10 , batch_size=50 )
 print "... finished training test."
 session.saveSession()
 exit()

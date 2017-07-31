@@ -1,5 +1,5 @@
 import numpy as np
-import model
+import autoencode_model
 import session
 from scipy import spatial
 
@@ -12,7 +12,7 @@ def reset() :
 
 def update() :
     global all_embeddings
-    all_embeddings = session.sess.run(model.conv5e,feed_dict={model.x0:data_set} ).reshape([-1,model.SIZE])
+    all_embeddings = session.sess.run(autoencode_model.conv5e,feed_dict={autoencode_model.x0:data_set} ).reshape([-1,autoencode_model.SIZE])
 
 def getEmbeddings() :
     global all_embeddings
@@ -23,17 +23,17 @@ def getEmbeddings() :
 def calculateDistance(index1,index2) :
     return spatial.distance.cosine( index1, index2 )
 
-def nearestNeighbour(embedding) :
+def nearestNeighbour(embedding,size=10) :
     the_embeddings = getEmbeddings()
     index_list = range(the_embeddings.shape[0])
     distances = np.array([ calculateDistance(embedding,the_embeddings[other]) for other in index_list ])
-    nearest = np.argsort( distances )[:10]
+    nearest = np.argsort( distances )[:size]
     return np.array(index_list)[nearest]
 
-def nearestNeighbourByIndex(index) :
+def nearestNeighbourByIndex(index,size=10) :
     the_embeddings = getEmbeddings()
     embedding = the_embeddings[index]
     index_list = range(the_embeddings.shape[0])
     distances = np.array([ calculateDistance(embedding,the_embeddings[other]) for other in index_list ])
-    nearest = np.argsort( distances )[:10]
+    nearest = np.argsort( distances )[:size]
     return np.array(index_list)[nearest]
