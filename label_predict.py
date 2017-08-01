@@ -12,15 +12,14 @@ def getRandom(positive_examples,embeddings) :
     neg = random.randint(0,embeddings.getEmbeddings().shape[0]-1)
   return neg
 
-def doEpoch(positive_examples,embeddings,model,sess) :
-  score = 0.0
-  for iteration in range(len(positive_examples)) :
-    pos = positive_examples[ iteration ]
-    neg = getRandom(positive_examples,embeddings)
-    percent_correct = sess.run(model.correct,feed_dict={model.emb_in:embeddings.getEmbeddings()[ [pos,neg] ],model.category_in:[ [1.,0.],[0.,1.] ],model.dropout:1.0})
-    score += percent_correct
-    sess.run(model.train,feed_dict={model.emb_in:embeddings.getEmbeddings()[ [pos,neg] ],model.category_in:[ [1.,0.],[0.,1.] ],model.dropout:.5})
-  score = 1. * score / len(positive_examples)
+def doEpoch(examples,embeddings,model,sess) :
+  score = 0
+  for example in examples :
+    embeddings_in = [ embeddings.getEmbeddings()[ subitem ] for subitem in example ]
+    category_in = np.identity( len(example) )
+    score += sess.run(model.correct,feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
+    sess.run(         model.train,  feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:.5})
+  score = 1. * score / len(examples)
   print ".",
   return score
 
@@ -36,7 +35,8 @@ def doTraining(positive_examples,embeddings) :
       print "Training started",
       result_correct = 0
       for _ in range(30) :
-        result_correct = doEpoch(positive_examples,embeddings,model,sess)
+        negative_examples = [ getRandom(positive_examples,embeddings) for item in positive_examples]
+        result_correct = doEpoch( zip( positive_examples , negative_examples ) ,embeddings,model,sess)
         if result_correct >= target_correct :
           break
       print "done training with result correct :",result_correct      
