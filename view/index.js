@@ -9,11 +9,13 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         'training_sessions' : [0,0,0,0,0,0,0],
         'difference_images' : [],
         'sele' : 1,
-        'prev' : 2,
-        'blend' : [0,11,22,33,44,55,66,77,88,100],
+        'prev' : 2
     };
     $scope.similar_images = [];
     $scope.label_list = {};
+    $scope.label_errors = {};
+    $scope.errors = {};
+    $scope.groups = { };
 
     $scope.randomizeImage = function() {
         $scope.data.images = []
@@ -55,6 +57,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
               $scope.similar_images.push( { 'id' : result.data.response[index] , 'state' : 1 } );
             }
         })
+        $scope.errors = {};
     }
 
     $scope.learn = function(index) {
@@ -64,12 +67,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             $scope.data.training_sessions[index] += 1;
             $scope.randomizeImage();
         })
-    }
-
-    $scope.add_label = function(label) {
-        if ( $scope.label_list[label] == undefined ) {
-            $scope.label_list[label] = { };
-        }
     }
 
     $scope.label_score = function(label) {
@@ -82,16 +79,26 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                 pos += 1;
             }
         }
-        return '+' + pos + ":-" + neg
+        return '+' + pos + ":-" + neg + ":E" + Math.round($scope.label_errors[label]*10)
     }
 
     $scope.add_to_label = function(label) {
-
+        if ( $scope.label_list[label] == undefined ) {
+            $scope.label_list[label] = { };
+        }
         console.log("Add these to label " + label);
+        var number_of_images = $scope.similar_images.length
+        if ( $scope.label_errors[label] == undefined ) {
+            $scope.label_errors[label] = 0;
+        }
         for ( var index in $scope.similar_images ) {
             var data = $scope.similar_images[index];
             $scope.label_list[label][data.id] = data.state;
+            if ( $scope.errors[data.id] ) {
+                $scope.label_errors[label] += 1.0 - index / number_of_images
+            }
         }
+        $scope.errors = {};
         $scope.similar_images = [];
         $scope.label_predict(label);
     }
@@ -120,7 +127,37 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             }
         })
         $scope.new_label = label;
+        $scope.errors = {};
     }
 
+    $scope.errorCount = function() {
+        return Object.keys($scope.errors).length;
+    }
+
+    $scope.toggleError = function(id) {
+        if ( $scope.errors[id] ) {
+            delete $scope.errors[id] ;
+        } else {
+            $scope.errors[id] = 1;
+        }
+        console.log("We toggled ",id," to be",$scope.errors[id]," bringing the total errors to ", $scope.errorCount() );
+    }
+
+    $scope.labelsNotInGroup = function(groupName) {
+        console.log("CALLING labelsNotInGroup with "+groupName);
+        return Object.keys($scope.label_list).filter( function(name) { console.log("iterating with "+name ); return !$scope.groups[groupName]['labels_in'][name]  } )
+    }
+
+    $scope.add_to_group = function(groupName,label) {
+        $scope.groups[groupName]['labels_in'][label] = 1
+    }
+
+    $scope.remove_from_group = function(groupName,label) {
+        delete $scope.groups[groupName]['labels_in'][label]
+    }
+
+    $scope.create_new_group = function(new_group_name) {
+        $scope.groups[new_group_name] = { 'labels_in' : { } } ;
+    }
 
 });
