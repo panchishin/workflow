@@ -60,29 +60,3 @@ def getPredictiveWeights(positive_examples,negative_examples,embeddings) :
     weights[element] = 0.
   return weights
 
-
-def groundTruthReport(positive_examples,embeddings,mnist) :
-  category_in_full_set = np.array( [ [1.,0.] if item == 4 else [0.,1.] for item in np.argmax(mnist.test.labels,1) ] )
-
-  data = sess.run(
-    model.category_out,
-    feed_dict={
-      model.emb_in:embeddings.getEmbeddings(),
-      model.category_in:category_in_full_set,
-      model.dropout:1.0
-      }
-    )
-
-  data = np.argmax( data, 1 )
-  ground = np.argmax( category_in_full_set , 1 )
-
-  print "Confusion Matrix"
-  print "ground , prediction"
-  print ( ( data == 0 ) * ( ground == 0 ) ).sum() , ( ( data == 1 ) * ( ground == 0 ) ).sum()
-  print ( ( data == 0 ) * ( ground == 1 ) ).sum() , ( ( data == 1 ) * ( ground == 1 ) ).sum()
-
-  precision = 1. * (( data == 0 ) * ( ground == 0 ) ).sum() / ( data == 0 ).sum()
-  print "Precision", precision
-  recall = 1. * (( data == 0 ) * ( ground == 0 ) ).sum() / ( ground == 0 ).sum()
-  print "Recall",recall
-  print "F1", 2.*precision*recall/(precision + recall)

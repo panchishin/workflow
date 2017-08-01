@@ -31,4 +31,3 @@ print "Pretend labeling the first",len(nearest)," ..."
 
 result = label_predict.getPredictiveWeights(nearest,negative_examples,embeddings)
 print zip( np.argmax(mnist.test.labels[:20,:],1), result[:20] )
-label_predict.groundTruthReport(nearest,embeddings,mnist)
