@@ -28,9 +28,9 @@ def doEpoch(positive_examples,embeddings,model,sess) :
 def doTraining(positive_examples,embeddings) :
   label_graph = tf.Graph()
   with label_graph.as_default() :
-    model = label_model.model()
+    model = label_model.model(number_of_classes=2)
     with tf.Session(graph=label_graph) as sess :
-      sess.run(model.init_new_vars_op)
+      sess.run( tf.global_variables_initializer() )
       target_correct = max( 0.95 , min( 0.99 , 1. - 3. / len(positive_examples) ) )
       print "Target correct is",target_correct
       print "Training started",
