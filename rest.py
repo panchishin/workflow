@@ -122,15 +122,17 @@ class LabelPredict:
     data = json.loads( req.stream.read() )
     result = label_predict.getPredictiveWeights(data["positive"],data["negative"],embeddings)
 
-    likely_weight = result[ ( result < 1. ) * ( result > .5 ) ]
-    likely_index  = np.array(range(result.shape[0]))[ ( result < 1. ) * ( result > .5 ) ]
-    positive = likely_index[np.argsort(likely_weight)[-100::10]].tolist()
+    likely_filter = ( result < 1. ) * ( result > .5 )
+    likely_weight = result[ likely_filter ]
+    likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
+    positive = likely_index[np.argsort(likely_weight)][-10::1].tolist()
 
-    unlikely_weight = result[ ( result > .0 ) * ( result < .5 ) ]
-    unlikely_index  = np.array(range(result.shape[0]))[ ( result > .0 ) * ( result < .5 ) ]
-    negative = unlikely_index[np.argsort(unlikely_weight)[:30:10]].tolist()
+    unlikely_filter = ( result > .0 ) * ( result < .5 )
+    unlikely_weight = result[ unlikely_filter ]
+    unlikely_index  = np.array(range(result.shape[0]))[ unlikely_filter ]
+    negative = unlikely_index[np.argsort(unlikely_weight)][-400::100].tolist()
 
-    resp.body = json.dumps( { 'response' : { 'positive' : positive[::-1] , 'negative' : negative } } )
+    resp.body = json.dumps( { 'response' : { 'positive' : positive , 'negative' : negative } } )
 
 
 print """
