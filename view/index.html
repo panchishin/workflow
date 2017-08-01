@@ -66,7 +66,7 @@
 			<span ng-repeat="(label,label_data) in label_list">
 				<button class="btn btn-primary btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
 			</span>
-			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button ng-show="new_label" class="btn btn-primary btn-sm label_button" ng-click="add_label(new_label);add_to_label(new_label);new_label='';">Add</button>
+			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button ng-show="new_label" class="btn btn-primary btn-sm label_button" ng-click="add_label(new_label);add_to_label(new_label);">Add</button>
 		</div>
 	</div>
 	

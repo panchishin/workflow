@@ -46,6 +46,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.similar = function(index) {
         $scope.data.prev = $scope.data.sele;
         $scope.data.sele = index;
+        $scope.new_label="";
         console.log("calling similar ...");
         $http({method:"GET" , url : "/similar/"+index , cache: false}).then(function successCallback(result) {
             console.log("... done");
@@ -92,7 +93,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             $scope.label_list[label][data.id] = data.state;
         }
         $scope.similar_images = [];
-
+        $scope.label_predict(label);
     }
 
     $scope.label_predict = function(label) {
