@@ -22,7 +22,7 @@ def doEpoch(embeddings_in,category_in,model,sess) :
 def doTraining(examples,embeddings) :
   label_graph = tf.Graph()
   with label_graph.as_default() :
-    model = label_model.model(number_of_classes=2)
+    model = label_model.model(number_of_classes=max(2, len(examples) ) )
     with tf.Session(graph=label_graph) as sess :
       sess.run( tf.global_variables_initializer() )
       target_correct = max( 0.95 , min( 0.99 , 1. - 1. / len(examples) ) )
@@ -30,18 +30,30 @@ def doTraining(examples,embeddings) :
       print "Training started",
       result_correct = 0
       for _ in range(50) :
-        negative_examples = [ getRandom(examples,embeddings) for item in examples]
 
-        # convert the examples and negative examples which are image ids into embeddings
-        example_category = [ [1.,0.] for subitem in examples ]
-        example_embeddings = [ embeddings.getEmbeddings()[ subitem ] for subitem in examples ]
-        negative_category = [ [0.,1.] for subitem in negative_examples ]
-        negative_embeddings = [ embeddings.getEmbeddings()[ subitem ] for subitem in negative_examples ]
+        if len(examples) == 1 :
+          negative_examples = [ getRandom(examples[0],embeddings) for item in examples[0]]
 
-        example_embeddings.extend( negative_embeddings )
-        example_category.extend( negative_category )
+          # convert the examples and negative examples which are image ids into embeddings
+          example_category = [ [1.,0.] for subitem in examples[0] ]
+          example_embeddings = [ embeddings.getEmbeddings()[ subitem ] for subitem in examples[0] ]
+          negative_category = [ [0.,1.] for subitem in negative_examples ]
+          negative_embeddings = [ embeddings.getEmbeddings()[ subitem ] for subitem in negative_examples ]
+
+          example_embeddings.extend( negative_embeddings )
+          example_category.extend( negative_category )
+
+        if len(examples) > 1 :
+          example_category = []
+          example_embeddings = []
+          identity  = np.identity( len(examples) )
+          for category in range(len(examples)) :
+            example_category.extend( [ identity[category,:] for item in examples[category] ] )
+            example_embeddings.extend( [ embeddings.getEmbeddings()[ subitem ] for subitem in examples[category] ] )
 
         result_correct = doEpoch( example_embeddings, example_category, model, sess )
+
+        print ".",
         if result_correct >= target_correct :
           break
       print "done training with result correct :",result_correct      
@@ -51,13 +63,24 @@ def doTraining(examples,embeddings) :
           model.emb_in:embeddings.getEmbeddings(),
           model.dropout:1.0
           }
-        )[:,0]
+        )
 
-def getPredictiveWeights(positive_examples,negative_examples,embeddings) :
-  model,weights = doTraining(positive_examples,embeddings)
+
+def predictiveBinaryWeights(positive_examples,negative_examples,embeddings) :
+  model,weights = doTraining([positive_examples],embeddings)
+  #weights = weights[:,0]
   for element in positive_examples :
-    weights[element] = 1.
+    weights[element] = [1.,0.]
   for element in negative_examples :
-    weights[element] = 0.
+    weights[element] = [0.,1.]
   return weights
 
+
+def predictiveMultiClassWeights(examples,embeddings) :
+  model,weights = doTraining(examples,embeddings)
+  identity  = np.identity( len(examples) )
+  for category in range(len(examples)) :
+    for example in examples[category] :
+      weights[example] = identity[category,:]
+      
+  return weights

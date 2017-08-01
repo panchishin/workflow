@@ -29,5 +29,10 @@ for label,data_index in result :
 
 print "Pretend labeling the first",len(nearest)," ..."
 
-result = label_predict.getPredictiveWeights(nearest,negative_examples,embeddings)
-print zip( np.argmax(mnist.test.labels[:20,:],1), result[:20] )
+result = label_predict.predictiveBinaryWeights(nearest,negative_examples,embeddings)
+for item in zip( np.argmax(mnist.test.labels[:20,:],1), result[:20] ) :
+  print item
+
+result = label_predict.predictiveMultiClassWeights( [ nearest,negative_examples] ,embeddings)
+for item in zip( np.argmax(mnist.test.labels[:20,:],1), result[:20] ) :
+  print item
