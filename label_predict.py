@@ -12,31 +12,36 @@ def getRandom(positive_examples,embeddings) :
     neg = random.randint(0,embeddings.getEmbeddings().shape[0]-1)
   return neg
 
-def doEpoch(examples,embeddings,model,sess) :
-  score = 0
-  for example in examples :
-    embeddings_in = [ embeddings.getEmbeddings()[ subitem ] for subitem in example ]
-    category_in = np.identity( len(example) )
-    score += sess.run(model.correct,feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
-    sess.run(         model.train,  feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:.5})
-  score = 1. * score / len(examples)
-  print ".",
+
+def doEpoch(embeddings_in,category_in,model,sess) :
+  score = sess.run(model.correct,feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
+  sess.run(        model.train,  feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:.5})
   return score
 
 
-def doTraining(positive_examples,embeddings) :
+def doTraining(examples,embeddings) :
   label_graph = tf.Graph()
   with label_graph.as_default() :
     model = label_model.model(number_of_classes=2)
     with tf.Session(graph=label_graph) as sess :
       sess.run( tf.global_variables_initializer() )
-      target_correct = max( 0.95 , min( 0.99 , 1. - 3. / len(positive_examples) ) )
+      target_correct = max( 0.95 , min( 0.99 , 1. - 1. / len(examples) ) )
       print "Target correct is",target_correct
       print "Training started",
       result_correct = 0
-      for _ in range(30) :
-        negative_examples = [ getRandom(positive_examples,embeddings) for item in positive_examples]
-        result_correct = doEpoch( zip( positive_examples , negative_examples ) ,embeddings,model,sess)
+      for _ in range(50) :
+        negative_examples = [ getRandom(examples,embeddings) for item in examples]
+
+        # convert the examples and negative examples which are image ids into embeddings
+        example_category = [ [1.,0.] for subitem in examples ]
+        example_embeddings = [ embeddings.getEmbeddings()[ subitem ] for subitem in examples ]
+        negative_category = [ [0.,1.] for subitem in negative_examples ]
+        negative_embeddings = [ embeddings.getEmbeddings()[ subitem ] for subitem in negative_examples ]
+
+        example_embeddings.extend( negative_embeddings )
+        example_category.extend( negative_category )
+
+        result_correct = doEpoch( example_embeddings, example_category, model, sess )
         if result_correct >= target_correct :
           break
       print "done training with result correct :",result_correct      
