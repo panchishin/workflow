@@ -27,13 +27,15 @@ def doEpoch(positive_examples,embeddings) :
 
 def doTraining(positive_examples,embeddings) :
   sess.run(label_model.init_new_vars_op)
-  target_correct = 1. - 3. / len(positive_examples)
+  target_correct = max( 0.95 , min( 0.99 , 1. - 3. / len(positive_examples) ) )
   print "Target correct is",target_correct
   print "Training started",
-  for _ in range(20) :
-    if doEpoch(positive_examples,embeddings) >= target_correct :
+  result_correct = 0
+  for _ in range(30) :
+    result_correct = doEpoch(positive_examples,embeddings)
+    if result_correct >= target_correct :
       break
-  print "done training"      
+  print "done training with result correct :",result_correct      
   return sess.run(
     label_model.category_out,
     feed_dict={
