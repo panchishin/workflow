@@ -9,14 +9,13 @@
 <body ng-controller="mainController">
 	<h1>Session Controls</h1>
 	<div class="session_controls">
-		<button class="btn btn-primary btn-sm" ng-click="reset_session()">Reset Net</button>
-		<button class="btn btn-primary btn-sm" ng-click="restore_session()">Restore Net</button>
-		<button class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
+		<button class="btn btn-primary btn-sm" ng-click="show_embedding_section=!show_embedding_section">Embeddings</button>
+		<button class="btn btn-primary btn-sm" ng-click="show_label_section=!show_label_section">Labels</button>
 		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);new_group_name=''">Add</button>
 	</div>
 
-	<h1>Image Browser</h1>
-	<div class="find_related_images">
+	<div ng-show="show_embedding_section" class="find_related_images">
+	<h1>Image Embeddings</h1>
 		<div class="imageline">
 			<div class="texty"><p>Original</p></div>
 			<span ng-repeat="index in data.images">
@@ -37,10 +36,16 @@
 			<button ng-hide="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train Layer {{layer+1}}</button>
 			<button ng-show="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train All ({{data.training_sessions[5]}} epochs)</button>
 		</div>
+		<div ng-show="layer_display.length > 0">
+			<div class="texty"><p>Actions</p></div>
+			<button class="btn btn-primary btn-sm" ng-click="reset_session()">Reset Net</button>
+			<button class="btn btn-primary btn-sm" ng-click="restore_session()">Restore Net</button>
+			<button class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
+		</div>
 	</div>
 
 
-	<div class="label_area">
+	<div ng-show="show_label_section" class="label_area">
 	<h1>Labels</h1>
 		<div ng-show="label_list == {}">
 			<p>No labels yet</p>
@@ -58,6 +63,7 @@
 	<div class="group_area">
 		<div ng-repeat="(name,group_data) in groups">
 			<h2>{{name}} (Group)</h2>
+			<div class="texty"><p>{{group_count_total(name)}} items</p></div>
 			<div ng-hide="group_data.locked">
 				<div class="texty"><p>In group</p></div>
 				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="remove_from_group(name,label)"  ng-repeat="(label,value) in group_data.labels_in">{{label}}</button>
@@ -67,9 +73,16 @@
 			</div>
 			<div ng-show="group_data.locked">
 				<div class="texty"><p>Search by</p></div>
-				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="group_predict(name,label)"  ng-repeat="(label,value) in group_data.labels_in">{{label}}</button>
+				
+				<span ng-repeat="(label,value) in group_data.labels_in">
+					<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="group_predict(name,label)"  >{{label}}</button>
+					<p class="multiplier">x{{label_score(label)}}</p>
+				</span>
+
 				<button class="btn btn-primary btn-sm label_button" ng-click="group_predict(name,-1)">?</button>
-				<div class="texty"><p>Locked</p></div><button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=false">Unlock</button>
+
+				<div class="texty"><p>Locked</p></div>
+				<button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=false">Unlock</button>
 			</div>
 		</div>
 	</div>

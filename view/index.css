@@ -4,6 +4,9 @@ body {
     font-size : 12px;
     background-color: #eee;
 }
+h2 {
+    display : inline-block;
+}
 button {
     padding : .25em;
     margin : .25em;
@@ -32,7 +35,7 @@ p.multiplier {
     position: absolute;
 }
 
-div.label_area span {
+div.label_area span , div.group_area span {
     display: inline-block;
 }
 
