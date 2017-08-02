@@ -48,7 +48,7 @@
 		<span ng-hide="label_list == {}">
 			<div class="texty"><p>Labels</p></div>
 			<span ng-repeat="(label,label_data) in label_list">
-				<button class="btn {{ label_score(label) < 25 ? 'btn-danger' : label_score(label) < 100 ? 'btn-warning' : 'btn-success' }} btn-sm label_button" ng-click="label_predict(label)">{{label}}</button>
+				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="label_predict(label)">{{label}}</button>
 				<p class="multiplier">x{{label_score(label)}}</p>
 			</span>
 	  	</span>
@@ -57,17 +57,17 @@
 
 	<div class="group_area">
 		<div ng-repeat="(name,group_data) in groups">
-			<h2>{{name}}</h2>
+			<h2>{{name}} (Group)</h2>
 			<div ng-hide="group_data.locked">
 				<div class="texty"><p>In group</p></div>
-				<button class="btn {{ label_score(label) < 25 ? 'btn-danger' : label_score(label) < 100 ? 'btn-warning' : 'btn-success' }} btn-sm label_button" ng-click="remove_from_group(name,label)"  ng-repeat="(label,value) in group_data.labels_in">{{label}}</button>
+				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="remove_from_group(name,label)"  ng-repeat="(label,value) in group_data.labels_in">{{label}}</button>
 				<div class="texty"><p>Not in group</p></div>
-				<button class="btn {{ label_score(label) < 25 ? 'btn-danger' : label_score(label) < 100 ? 'btn-warning' : 'btn-success' }} btn-sm label_button" ng-click="add_to_group(name,label)" ng-repeat="label in labelsNotInGroup(name)">{{label}}</button>
+				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="add_to_group(name,label)" ng-repeat="label in labelsNotInGroup(name)">{{label}}</button>
 				<div class="texty"><p>Unlocked</p></div><button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=true">Lock</button>
 			</div>
 			<div ng-show="group_data.locked">
 				<div class="texty"><p>Search by</p></div>
-				<button class="btn {{ label_score(label) < 25 ? 'btn-danger' : label_score(label) < 100 ? 'btn-warning' : 'btn-success' }} btn-sm label_button" ng-click="group_predict(name,label)"  ng-repeat="(label,value) in group_data.labels_in">{{label}}</button>
+				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="group_predict(name,label)"  ng-repeat="(label,value) in group_data.labels_in">{{label}}</button>
 				<button class="btn btn-primary btn-sm label_button" ng-click="group_predict(name,-1)">?</button>
 				<div class="texty"><p>Locked</p></div><button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=false">Unlock</button>
 			</div>
@@ -89,7 +89,7 @@
 		<div class="label_area">
 		  	<div class="texty"><p>Add to label</p></div>
 			<span ng-repeat="(label,label_data) in label_list">
-				<button class="btn {{ label_score(label) < 25 ? 'btn-danger' : label_score(label) < 100 ? 'btn-warning' : 'btn-success' }} btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
+				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
 			</span>
 			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button ng-show="new_label" class="btn btn-primary btn-sm label_button" ng-click="add_to_label(new_label);">Add</button>
 		</div>

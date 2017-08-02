@@ -121,15 +121,17 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                 pos_list.push(parseInt(index));
             }
         }
-        $http({method:"POST" , url : "/label_predict" , cache: false , data:{positive:pos_list,negative:neg_list} }).then(function successCallback(result) {
+
+        $http({method:"POST" , url : "/group_predict/0" , cache: false , data:[pos_list,neg_list]}).then(function successCallback(result) {
             $scope.similar_images = []
             for ( var index in result.data.response.positive ) {
-              $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : 1 } );
+                $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : 1 } );
             }
             for ( var index in result.data.response.negative ) {
-              $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
+                $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
             }
         })
+
         $scope.new_label = label;
         $scope.errors = {};
     }
@@ -195,5 +197,9 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
           $scope.new_label = "";
         }
         $scope.errors = {};
+    }
+
+    $scope.button_confidence = function(label) {
+        return $scope.label_score(label) < 10 ? 'btn-danger' : $scope.label_score(label) < 50 ? 'btn-warning' : 'btn-success'
     }
 });
