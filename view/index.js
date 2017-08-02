@@ -15,7 +15,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.label_list = {};
     $scope.label_errors = {};
     $scope.errors = {};
-    $scope.groups = { };
+    $scope.groups = {};
 
     $scope.randomizeImage = function() {
         $scope.data.images = []
@@ -46,8 +46,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     $scope.similar = function(index) {
-        $scope.data.prev = $scope.data.sele;
-        $scope.data.sele = index;
         $scope.new_label="";
         console.log("calling similar ...");
         $http({method:"GET" , url : "/similar/"+index , cache: false}).then(function successCallback(result) {
@@ -102,15 +100,18 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         $scope.errors = {};
         $scope.similar_images = [];
         if ( $scope.label_score(label) >= 20 && $scope.label_score(label) < 100 ) {
-            $scope.label_predict(label);  
+            if ( $scope.currentGroup ) {
+                $scope.group_predict($scope.currentGroup,label); 
+            } else {
+                $scope.label_predict(label); 
+            }
         } else {
             $scope.new_label = "";
         }
     }
 
     $scope.label_predict = function(label) {
-        $scope.data.prev = $scope.data.sele;
-        $scope.data.sele = index;
+        $scope.currentGroup = false
         neg_list = [];
         pos_list = [];
         for( var index in $scope.label_list[label] ) {
@@ -165,4 +166,32 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         $scope.groups[new_group_name] = { 'labels_in' : { } } ;
     }
 
+    $scope.group_predict = function(groupName,label) {
+        $scope.currentGroup = groupName
+        var data_list = [];
+        var labels = Object.keys( $scope.groups[groupName]['labels_in'] )
+        for( var label_index in labels ) {
+            var sub_list = [];
+            data_list.push(sub_list);
+            var label_list = $scope.label_list[labels[label_index]]
+            for( var index in label_list ) {
+                if ( label_list[index] == 1 ) {
+                    sub_list.push(parseInt(index));
+                }
+            }
+        }
+        console.log("calling group_predict ...");
+        $http({method:"POST" , url : "/group_predict/" + labels.indexOf(label) , cache: false , data:data_list}).then(function successCallback(result) {
+            console.log("... done");
+            $scope.similar_images = []
+            for ( var index in result.data.response.positive ) {
+              $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : 1 } );
+            }
+            for ( var index in result.data.response.negative ) {
+              $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
+            }
+        })
+        $scope.new_label = label;
+        $scope.errors = {};
+    }
 });

@@ -120,12 +120,13 @@ class Similar:
 class LabelPredict:
   def on_post(self, req, resp):
     data = json.loads( req.stream.read() )
-    result = label_predict.getPredictiveWeights(data["positive"],data["negative"],embeddings)
+    result = label_predict.predictiveBinaryWeights(data["positive"],data["negative"],embeddings)
+    result = np.array(result)[:,0]
 
     likely_filter = ( result < 1. ) * ( result > .5 )
     likely_weight = result[ likely_filter ]
     likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
-    positive = likely_index[np.argsort(likely_weight)][-10::1].tolist()
+    positive = likely_index[np.argsort(likely_weight)][-100::10].tolist()
 
     unlikely_filter = ( result > .0 ) * ( result < .5 )
     unlikely_weight = result[ unlikely_filter ]
@@ -133,6 +134,31 @@ class LabelPredict:
     negative = unlikely_index[np.argsort(unlikely_weight)][-400::100].tolist()
 
     resp.body = json.dumps( { 'response' : { 'positive' : positive , 'negative' : negative } } )
+
+previous_group_predict_result = None
+previous_group_predict_data_hash = 0
+
+class GroupPredict:
+  def on_post(self, req, resp, response_index):
+    global previous_group_predict_result , previous_group_predict_data_hash
+    data_text = req.stream.read()
+    data = json.loads( data_text )
+    if hash(data_text) == previous_group_predict_data_hash :
+      result = previous_group_predict_result
+    else :
+      result = label_predict.predictiveMultiClassWeights(data,embeddings)
+      previous_group_predict_result = result
+      previous_group_predict_data_hash = hash(data_text)
+
+    result = np.array(result)[:,int(response_index)]
+    
+    likely_filter = result < 1.
+    likely_weight = result[ likely_filter ]
+    likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
+    positive = likely_index[np.argsort(likely_weight)][::-1][random.randint(0,9)::random.randint(8,12)][:10].tolist()
+
+    resp.body = json.dumps( { 'response' : { 'positive' : positive , 'negative' : [] } } )
+
 
 
 print """
@@ -150,5 +176,6 @@ api.add_route('/restore_session', RestoreSession())
 api.add_route('/similar/{index}', Similar())
 api.add_route('/blend/{a_value}/{b_value}/{amount}', BlendImage())
 api.add_route('/label_predict', LabelPredict())
+api.add_route('/group_predict/{response_index}', GroupPredict())
 
 

@@ -28,6 +28,10 @@ p.inline {
     display: inline-block;
 }
 
+p.multiplier {
+    position: absolute;
+}
+
 div.label_area span {
     display: inline-block;
 }

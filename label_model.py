@@ -23,7 +23,7 @@ class model:
     self.category_out = tf.nn.softmax( self.layer1 )
     
     self.loss = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits( labels=self.category_in, logits=self.layer1) )
-    self.train = tf.train.GradientDescentOptimizer(1).minimize(self.loss)
+    self.train = tf.train.AdamOptimizer(.01).minimize(self.loss)
     
     self.correct = tf.reduce_mean( tf.cast( tf.equal( tf.argmax( self.category_in , 1 ) , tf.argmax( self.layer1 , 1 ) ) , dtype=tf.float32 ) )
     

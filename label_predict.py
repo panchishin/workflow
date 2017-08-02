@@ -25,11 +25,11 @@ def doTraining(examples,embeddings) :
     model = label_model.model(number_of_classes=max(2, len(examples) ) )
     with tf.Session(graph=label_graph) as sess :
       sess.run( tf.global_variables_initializer() )
-      target_correct = max( 0.95 , min( 0.99 , 1. - 1. / len(examples) ) )
+      target_correct = max( 0.95 , min( 0.998 , 1. - 5. / ( len(examples) * len(examples[0]) ) ) )
       print "Target correct is",target_correct
       print "Training started",
       result_correct = 0
-      for _ in range(50) :
+      for epoch_count in range(200) :
 
         if len(examples) == 1 :
           negative_examples = [ getRandom(examples[0],embeddings) for item in examples[0]]
@@ -53,9 +53,12 @@ def doTraining(examples,embeddings) :
 
         result_correct = doEpoch( example_embeddings, example_category, model, sess )
 
-        print ".",
+        if epoch_count % 10 == 0 :
+          print int(round(result_correct*100)),
+
         if result_correct >= target_correct :
           break
+
       print "done training with result correct :",result_correct      
       return model,sess.run(
         model.category_out,
@@ -68,7 +71,6 @@ def doTraining(examples,embeddings) :
 
 def predictiveBinaryWeights(positive_examples,negative_examples,embeddings) :
   model,weights = doTraining([positive_examples],embeddings)
-  #weights = weights[:,0]
   for element in positive_examples :
     weights[element] = [1.,0.]
   for element in negative_examples :
@@ -82,5 +84,4 @@ def predictiveMultiClassWeights(examples,embeddings) :
   for category in range(len(examples)) :
     for example in examples[category] :
       weights[example] = identity[category,:]
-      
   return weights
