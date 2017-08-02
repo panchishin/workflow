@@ -28,6 +28,10 @@ p.inline {
     display: inline-block;
 }
 
+div.label_area span {
+    display: inline-block;
+}
+
 div.texty {
     width: 10em;
     display: inline-block;

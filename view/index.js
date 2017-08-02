@@ -79,7 +79,8 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                 pos += 1;
             }
         }
-        return '+' + pos + ":-" + neg + ":E" + Math.round($scope.label_errors[label]*10)
+        //return '+' + pos + ":-" + neg + ":E" + Math.round($scope.label_errors[label]*10)
+        return pos
     }
 
     $scope.add_to_label = function(label) {
@@ -100,7 +101,11 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         }
         $scope.errors = {};
         $scope.similar_images = [];
-        $scope.label_predict(label);
+        if ( $scope.label_score(label) >= 20 && $scope.label_score(label) < 100 ) {
+            $scope.label_predict(label);  
+        } else {
+            $scope.new_label = "";
+        }
     }
 
     $scope.label_predict = function(label) {
