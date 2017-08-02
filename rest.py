@@ -152,12 +152,13 @@ class GroupPredict:
 
     result = np.array(result)[:,int(response_index)]
     
-    likely_filter = result < 1.
+    likely_filter = ( result < 1. ) * ( result > .0 )
     likely_weight = result[ likely_filter ]
     likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
     positive = likely_index[np.argsort(likely_weight)][::-1][random.randint(0,9)::random.randint(8,12)][:10].tolist()
+    negative = likely_index[np.argsort(likely_weight)][random.randint(0,9)::random.randint(8,12)][:4].tolist()
 
-    resp.body = json.dumps( { 'response' : { 'positive' : positive , 'negative' : [] } } )
+    resp.body = json.dumps( { 'response' : { 'positive' : positive , 'negative' : negative } } )
 
 
 
