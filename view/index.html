@@ -12,6 +12,7 @@
 		<button class="btn btn-primary btn-sm" ng-click="reset_session()">Reset Net</button>
 		<button class="btn btn-primary btn-sm" ng-click="restore_session()">Restore Net</button>
 		<button class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
+		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);">Add</button>
 	</div>
 
 	<h1>Image Browser</h1>
@@ -38,25 +39,6 @@
 		</div>
 	</div>
 
-	<h1>Search Results</h1>
-	<div>
-		<div class="imageline" ng-show="similar_images.length == 0">
-			<p>Select an image or label from above</p>
-	  	</div>	
-		<div class="imageline" ng-show="similar_images.length > 0">
-			<div class="texty"><p>Images Found</p></div>
-			<span ng-repeat="data in similar_images">
-				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}/{{0}}" ng-click="data.state=1-data.state;toggleError(data.id)"></img>
-			</span>
-		</div>
-		<div class="label_area">
-		  	<div class="texty"><p>Add to label</p></div>
-			<span ng-repeat="(label,label_data) in label_list">
-				<button class="btn {{ label_score(label) < 25 ? 'btn-danger' : label_score(label) < 100 ? 'btn-warning' : 'btn-success' }} btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
-			</span>
-			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button ng-show="new_label" class="btn btn-primary btn-sm label_button" ng-click="add_to_label(new_label);">Add</button>
-		</div>
-	</div>
 
 	<div class="label_area">
 	<h1>Labels</h1>
@@ -73,10 +55,7 @@
 	</div>
 
 
-
 	<div class="group_area">
-	<h1>Exclusive Groups</h1>
-		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);">Add</button>
 		<div ng-repeat="(name,group_data) in groups">
 			<h2>{{name}}</h2>
 			<div ng-hide="group_data.locked">
@@ -89,10 +68,31 @@
 			<div ng-show="group_data.locked">
 				<div class="texty"><p>Search by</p></div>
 				<button class="btn {{ label_score(label) < 25 ? 'btn-danger' : label_score(label) < 100 ? 'btn-warning' : 'btn-success' }} btn-sm label_button" ng-click="group_predict(name,label)"  ng-repeat="(label,value) in group_data.labels_in">{{label}}</button>
+				<button class="btn btn-primary btn-sm label_button" ng-click="group_predict(name,-1)">?</button>
 				<div class="texty"><p>Locked</p></div><button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=false">Unlock</button>
 			</div>
 		</div>
 	</div>
-	
+
+
+	<div>
+	<h1>Search Results</h1>
+		<div class="imageline" ng-show="similar_images.length == 0">
+			<p>Select an image or label from above</p>
+	  	</div>	
+		<div class="imageline" ng-show="similar_images.length > 0">
+			<div class="texty"><p>Images Found</p></div>
+			<span ng-repeat="data in similar_images">
+				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}/{{0}}" ng-click="data.state=1-data.state;toggleError(data.id)"></img>
+			</span>
+		</div>
+		<div class="label_area">
+		  	<div class="texty"><p>Add to label</p></div>
+			<span ng-repeat="(label,label_data) in label_list">
+				<button class="btn {{ label_score(label) < 25 ? 'btn-danger' : label_score(label) < 100 ? 'btn-warning' : 'btn-success' }} btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
+			</span>
+			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button ng-show="new_label" class="btn btn-primary btn-sm label_button" ng-click="add_to_label(new_label);">Add</button>
+		</div>
+	</div>	
 </body>
 </html>

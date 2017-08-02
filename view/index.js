@@ -99,7 +99,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         }
         $scope.errors = {};
         $scope.similar_images = [];
-        if ( $scope.label_score(label) >= 20 && $scope.label_score(label) < 100 ) {
+        if ( $scope.label_score(label) > 0 && $scope.label_score(label) < 50 ) {
             if ( $scope.currentGroup ) {
                 $scope.group_predict($scope.currentGroup,label); 
             } else {
@@ -121,9 +121,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                 pos_list.push(parseInt(index));
             }
         }
-        console.log("calling label_predict ...");
         $http({method:"POST" , url : "/label_predict" , cache: false , data:{positive:pos_list,negative:neg_list} }).then(function successCallback(result) {
-            console.log("... done");
             $scope.similar_images = []
             for ( var index in result.data.response.positive ) {
               $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : 1 } );
@@ -180,18 +178,22 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                 }
             }
         }
-        console.log("calling group_predict ...");
         $http({method:"POST" , url : "/group_predict/" + labels.indexOf(label) , cache: false , data:data_list}).then(function successCallback(result) {
-            console.log("... done");
             $scope.similar_images = []
             for ( var index in result.data.response.positive ) {
-              $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : 1 } );
+                $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : (label != -1) } );
             }
+            if ( label != -1 ) {
             for ( var index in result.data.response.negative ) {
-              $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
+                $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
+            }
             }
         })
-        $scope.new_label = label;
+        if ( label >= 0 ) {
+          $scope.new_label = label;
+        } else {
+          $scope.new_label = "";
+        }
         $scope.errors = {};
     }
 });
