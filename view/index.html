@@ -12,7 +12,7 @@
 		<button class="btn btn-primary btn-sm" ng-click="reset_session()">Reset Net</button>
 		<button class="btn btn-primary btn-sm" ng-click="restore_session()">Restore Net</button>
 		<button class="btn btn-primary btn-sm" ng-click="save_session()">Save Net</button>
-		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);">Add</button>
+		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);new_group_name=''">Add</button>
 	</div>
 
 	<h1>Image Browser</h1>
@@ -63,7 +63,7 @@
 				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="remove_from_group(name,label)"  ng-repeat="(label,value) in group_data.labels_in">{{label}}</button>
 				<div class="texty"><p>Not in group</p></div>
 				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="add_to_group(name,label)" ng-repeat="label in labelsNotInGroup(name)">{{label}}</button>
-				<div class="texty"><p>Unlocked</p></div><button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=true">Lock</button>
+				<div class="texty"><p>Unlocked</p></div><button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=true">Lock</button><button class="btn btn-danger btn-sm label_button" ng-click="delete_group(name)">Delete</button>
 			</div>
 			<div ng-show="group_data.locked">
 				<div class="texty"><p>Search by</p></div>

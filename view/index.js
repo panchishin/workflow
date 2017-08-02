@@ -166,6 +166,10 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         $scope.groups[new_group_name] = { 'labels_in' : { } } ;
     }
 
+    $scope.delete_group = function(group_name) {
+        delete($scope.groups[group_name]);
+    }
+
     $scope.group_predict = function(groupName,label) {
         $scope.currentGroup = groupName
         var data_list = [];
