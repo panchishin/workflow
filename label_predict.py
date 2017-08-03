@@ -19,6 +19,11 @@ def doEpoch(embeddings_in,category_in,model,sess) :
   sess.run(        model.train,  feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:.5})
   return score
 
+def meanExamples(examples) :
+  return int(round( 1. * totalExamples(examples) / len(examples) ))
+
+def totalExamples(examples) :
+  return sum([ len(item) for item in examples ])
 
 def doTraining(examples,embeddings) :
   label_graph = tf.Graph()
@@ -26,20 +31,22 @@ def doTraining(examples,embeddings) :
     model = label_model.model(number_of_classes=1+len(examples) )
     with tf.Session(graph=label_graph) as sess :
       sess.run( tf.global_variables_initializer() )
-      target_correct = max( 0.95 , min( 0.998 , 1. - 5. / ( len(examples) * len(examples[0]) ) ) )
+      target_correct = max( 0.95 , min( 0.998 , 1. - 5. / totalExamples(examples) ) )
       print "Target correct is",target_correct
       print "Training started",
       result_correct = 0
+      sample_size = meanExamples(examples)
       for epoch_count in range(50) :
 
         example_category = []
         example_embeddings = []
         identity  = np.identity( len(examples) + 1 )
         for category in range(len(examples)) :
-          example_category.extend( [ identity[category,:] for item in examples[category] ] )
-          example_embeddings.extend( [ embeddings.getEmbeddings()[ subitem ] for subitem in examples[category] ] )
+          mask = np.random.choice(len(examples[category]), sample_size)
+          example_category.extend( np.array([ identity[category,:] for item in examples[category] ])[mask] )
+          example_embeddings.extend( np.array([ embeddings.getEmbeddings()[ subitem ] for subitem in examples[category] ])[mask] )
 
-        negative_examples = [ getRandom(examples,embeddings) for item in examples[0]]
+        negative_examples = [ getRandom(examples,embeddings) for item in range(sample_size)]
         example_category.extend( [ identity[-1,:] for subitem in negative_examples ] )
         example_embeddings.extend( [ embeddings.getEmbeddings()[ subitem ] for subitem in negative_examples ] )
 
