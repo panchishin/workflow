@@ -17,6 +17,36 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.errors = {};
     $scope.groups = {};
 
+    function retrieveSnapShot() {
+        var snap_shots = localStorage.getItem("snap_shots");
+        snap_shots = snap_shots ? snap_shots : "{}";
+        snap_shots = JSON.parse(snap_shots);
+        return snap_shots;
+    }
+
+    $scope.list_snap_shots = function() {
+        return Object.keys(retrieveSnapShot()).sort();
+    }
+
+    var importantData = 'label_list,label_errors,groups'.split(",")
+
+    $scope.load_snap_shot = function(snap_shot_name) {
+        var snap_shots = retrieveSnapShot();
+        snap_shot = snap_shots[snap_shot_name]
+        importantData.forEach( function(item) {
+            $scope[item] = snap_shot[item];
+        })
+    }
+
+    $scope.create_snap_shot = function(snap_shot_name) {
+        var snap_shots = retrieveSnapShot();
+        snap_shots[snap_shot_name] = {};
+        importantData.forEach( function(item) {
+            snap_shots[snap_shot_name][item] = $scope[item]
+        })
+        localStorage.setItem("snap_shots",JSON.stringify(snap_shots))
+    }
+
     function getRandomImageIndex() {
         return Math.floor( Math.random() * 10000 )
     }

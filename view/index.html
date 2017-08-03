@@ -12,6 +12,8 @@
 		<button class="btn btn-primary btn-sm" ng-click="show_embedding_section=!show_embedding_section">Embeddings</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_label_section=!show_label_section">Labels</button>
 		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);new_group_name=''">Add</button>
+		<p class="inline">Save snapshot</p><input type="text" ng-model="snap_shot_name"><button ng-show="snap_shot_name" class="btn btn-primary btn-sm label_button" ng-click="create_snap_shot(snap_shot_name);snap_shot_name=''">Add</button>
+		<button ng-repeat="item in list_snap_shots()" class="btn btn-primary btn-sm" ng-click="load_snap_shot(item)">{{item}}</button>
 	</div>
 
 	<div ng-show="show_embedding_section" class="find_related_images">
