@@ -25,6 +25,23 @@ def meanExamples(examples) :
 def totalExamples(examples) :
   return sum([ len(item) for item in examples ])
 
+def prepareDataForTraining(examples,embeddings,sample_size) :
+  example_category = []
+  example_embeddings = []
+  identity  = np.identity( len(examples) + 1 )
+  for category in range(len(examples)) :
+    mask = np.random.choice(len(examples[category]), sample_size)
+    example_category.extend( np.array([ identity[category,:] for item in examples[category] ])[mask] )
+    example_embeddings.extend( np.array([ embeddings.getEmbeddings()[ subitem ] for subitem in examples[category] ])[mask] )
+
+  unknown_examples = [ getRandom(examples,embeddings) for item in range(sample_size)]
+  example_category.extend( [ identity[-1,:] for subitem in unknown_examples ] )
+  example_embeddings.extend( [ embeddings.getEmbeddings()[ subitem ] for subitem in unknown_examples ] )
+
+  return example_embeddings, example_category
+
+
+
 def doTraining(examples,embeddings) :
   label_graph = tf.Graph()
   with label_graph.as_default() :
@@ -36,19 +53,13 @@ def doTraining(examples,embeddings) :
       print "Training started",
       result_correct = 0
       sample_size = meanExamples(examples)
+
+      # split data into training vs test
+      split_fraction = .2
+
       for epoch_count in range(50) :
 
-        example_category = []
-        example_embeddings = []
-        identity  = np.identity( len(examples) + 1 )
-        for category in range(len(examples)) :
-          mask = np.random.choice(len(examples[category]), sample_size)
-          example_category.extend( np.array([ identity[category,:] for item in examples[category] ])[mask] )
-          example_embeddings.extend( np.array([ embeddings.getEmbeddings()[ subitem ] for subitem in examples[category] ])[mask] )
-
-        negative_examples = [ getRandom(examples,embeddings) for item in range(sample_size)]
-        example_category.extend( [ identity[-1,:] for subitem in negative_examples ] )
-        example_embeddings.extend( [ embeddings.getEmbeddings()[ subitem ] for subitem in negative_examples ] )
+        example_embeddings, example_category = prepareDataForTraining(examples,embeddings,sample_size)
 
         result_correct = doEpoch( example_embeddings, example_category, model, sess )
 
@@ -57,6 +68,9 @@ def doTraining(examples,embeddings) :
 
         if result_correct >= target_correct :
           break
+
+        # run test data and break early if it's going poorly
+
 
       print "done training with result correct :",result_correct      
       return model,sess.run(
