@@ -68,15 +68,6 @@ def doTraining(examples,embeddings) :
         )
 
 
-def predictiveBinaryWeights(positive_examples,negative_examples,embeddings) :
-  model,weights = doTraining([positive_examples],embeddings)
-  for element in positive_examples :
-    weights[element] = [1.,0.]
-  for element in negative_examples :
-    weights[element] = [0.,1.]
-  return weights
-
-
 def predictiveMultiClassWeights(examples,embeddings) :
   model,weights = doTraining(examples,embeddings)
   identity  = np.identity( len(examples) + 1 )

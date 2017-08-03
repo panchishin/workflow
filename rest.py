@@ -117,23 +117,6 @@ class Similar:
     names = embeddings.nearestNeighbourByIndex( int(index) ).tolist()
     resp.body = json.dumps( { 'response' : names } )
 
-class LabelPredict:
-  def on_post(self, req, resp):
-    data = json.loads( req.stream.read() )
-    result = label_predict.predictiveBinaryWeights(data["positive"],data["negative"],embeddings)
-    result = np.array(result)[:,0]
-
-    likely_filter = ( result < 1. ) * ( result > .5 )
-    likely_weight = result[ likely_filter ]
-    likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
-    positive = likely_index[np.argsort(likely_weight)][-100::10].tolist()
-
-    unlikely_filter = ( result > .0 ) * ( result < .5 )
-    unlikely_weight = result[ unlikely_filter ]
-    unlikely_index  = np.array(range(result.shape[0]))[ unlikely_filter ]
-    negative = unlikely_index[np.argsort(unlikely_weight)][-400::100].tolist()
-
-    resp.body = json.dumps( { 'response' : { 'positive' : positive , 'negative' : negative } } )
 
 previous_group_predict_result = None
 previous_group_predict_data_hash = 0
@@ -176,7 +159,6 @@ api.add_route('/save_session', SaveSession())
 api.add_route('/restore_session', RestoreSession())
 api.add_route('/similar/{index}', Similar())
 api.add_route('/blend/{a_value}/{b_value}/{amount}', BlendImage())
-api.add_route('/label_predict', LabelPredict())
 api.add_route('/group_predict/{response_index}', GroupPredict())
 
 
