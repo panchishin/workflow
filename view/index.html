@@ -103,7 +103,7 @@
 		<div class="imageline" ng-show="similar_images.length > 0">
 			<div class="texty"><p>Images Found</p></div>
 			<span ng-repeat="data in similar_images">
-				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}/{{0}}" ng-click="data.state=1-data.state;toggleError(data.id)"></img>
+				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}/{{0}}" ng-click="data.state=1-data.state"></img>
 			</span>
 			<button class="btn btn-primary btn-sm label_button" ng-click="reverseSimilarImages()">Flip</button>
 		</div>

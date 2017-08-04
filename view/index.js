@@ -171,18 +171,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         $scope.errors = {};
     }
 
-    $scope.errorCount = function() {
-        return Object.keys($scope.errors).length;
-    }
-
-    $scope.toggleError = function(id) {
-        if ( $scope.errors[id] ) {
-            delete $scope.errors[id] ;
-        } else {
-            $scope.errors[id] = 1;
-        }
-    }
-
     $scope.labelsNotInGroup = function(groupName) {
         return Object.keys($scope.label_list).filter( function(name) { return !$scope.groups[groupName]['labels_in'][name]  } )
     }
