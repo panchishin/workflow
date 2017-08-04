@@ -123,6 +123,8 @@ previous_group_predict_data_hash = 0
 
 class GroupPredict:
   def on_post(self, req, resp, response_index):
+    response_index = int(response_index)
+    
     global previous_group_predict_result , previous_group_predict_data_hash
     data_text = req.stream.read()
     data = json.loads( data_text )
@@ -133,7 +135,6 @@ class GroupPredict:
       previous_group_predict_result = result
       previous_group_predict_data_hash = hash(data_text)
 
-    response_index = int(response_index)
     if response_index >= 0 :
       result = np.array(result)[:,int(response_index)]
     else :
@@ -143,7 +144,6 @@ class GroupPredict:
     likely_weight = result[ likely_filter ]
     likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
     positive = likely_index[np.argsort(likely_weight)][::-1][random.randint(0,9)::random.randint(8,12)][:10].tolist()
-    #negative = likely_index[np.argsort(likely_weight)][random.randint(0,9)::random.randint(8,12)][:4].tolist()
 
     resp.body = json.dumps( { 'response' : { 'positive' : positive , 'negative' : [] } } )
 
