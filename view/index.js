@@ -13,7 +13,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     };
     $scope.similar_images = [];
     $scope.label_list = {};
-    $scope.label_errors = {};
     $scope.errors = {};
     $scope.groups = {};
 
@@ -28,7 +27,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         return Object.keys(retrieveSnapShot()).sort();
     }
 
-    var importantData = 'label_list,label_errors,groups'.split(",")
+    var importantData = 'label_list,groups'.split(",")
 
     $scope.load_snap_shot = function(snap_shot_name) {
         var snap_shots = retrieveSnapShot();
@@ -48,7 +47,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     function getRandomImageIndex() {
-        return Math.floor( Math.random() * 10000 )
+        return Math.floor( Math.random() * 55000 )
     }
 
     $scope.randomizeImage = function() {
@@ -58,6 +57,12 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         }
     }
     $scope.randomizeImage()
+
+    $scope.reverseSimilarImages = function() {
+        Object.keys($scope.similar_images).forEach( function(key) {
+            $scope.similar_images[key].state = 1-$scope.similar_images[key].state
+        })
+    }
 
     $scope.reset_session = function() {
         $http({method:"GET" , url : "/reset_session" , cache: false}).then(function successCallback(result) {
@@ -118,22 +123,16 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         }
         console.log("Add these to label " + label);
         var number_of_images = $scope.similar_images.length
-        if ( $scope.label_errors[label] == undefined ) {
-            $scope.label_errors[label] = 0;
-        }
         for ( var index in $scope.similar_images ) {
             var data = $scope.similar_images[index];
             $scope.label_list[label][data.id] = data.state;
-            if ( $scope.errors[data.id] ) {
-                $scope.label_errors[label] += 1.0 - index / number_of_images
-            }
         }
         $scope.errors = {};
         $scope.similar_images = [];
         if ( $scope.currentGroup ) {
             $scope.add_to_group($scope.currentGroup,label)
         }
-        if ( $scope.label_score(label) > 0 && $scope.label_score(label) < 50 ) {
+        if ( $scope.label_score(label) > 0 && $scope.label_score(label) < 200 ) {
             if ( $scope.currentGroup ) {
                 $scope.group_predict($scope.currentGroup,label); 
             } else {
@@ -246,6 +245,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     $scope.button_confidence = function(label) {
-        return $scope.label_score(label) < 10 ? 'btn-danger' : $scope.label_score(label) < 50 ? 'btn-warning' : 'btn-success'
+        return $scope.label_score(label) < 50 ? 'btn-danger' : $scope.label_score(label) < 200 ? 'btn-warning' : 'btn-success'
     }
 });

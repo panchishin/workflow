@@ -14,8 +14,12 @@ def getRandom(examples,embeddings) :
   return neg
 
 
-def doEpoch(embeddings_in,category_in,model,sess) :
+def getScore(embeddings_in,category_in,model,sess) :
   score = sess.run(model.correct,feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
+  return score
+
+def doEpoch(embeddings_in,category_in,model,sess) :
+  score = getScore(embeddings_in,category_in,model,sess)
   sess.run(        model.train,  feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:.5})
   return score
 
@@ -25,54 +29,74 @@ def meanExamples(examples) :
 def totalExamples(examples) :
   return sum([ len(item) for item in examples ])
 
-def prepareDataForTraining(examples,embeddings,sample_size) :
+def prepareDataForTraining(examples,embeddings,sample_size=0,has_unknown=False,include_unknown=True) :
   example_category = []
   example_embeddings = []
-  identity  = np.identity( len(examples) + 1 )
+  identity  = np.identity( len(examples) + (1 if has_unknown else 0) )
   for category in range(len(examples)) :
-    mask = np.random.choice(len(examples[category]), sample_size)
+    if ( sample_size > 0 ) :
+      mask = [] if len(examples[category]) == 0 else np.random.choice(len(examples[category]), sample_size)
+    else :
+      mask = range(len(examples[category]))
     example_category.extend( np.array([ identity[category,:] for item in examples[category] ])[mask] )
     example_embeddings.extend( np.array([ embeddings.getEmbeddings()[ subitem ] for subitem in examples[category] ])[mask] )
 
-  unknown_examples = [ getRandom(examples,embeddings) for item in range(sample_size)]
-  example_category.extend( [ identity[-1,:] for subitem in unknown_examples ] )
-  example_embeddings.extend( [ embeddings.getEmbeddings()[ subitem ] for subitem in unknown_examples ] )
+  if ( has_unknown and include_unknown ) :
+    unknown_examples = [ getRandom(examples,embeddings) for item in range(sample_size)]
+    example_category.extend( [ identity[-1,:] for subitem in unknown_examples ] )
+    example_embeddings.extend( [ embeddings.getEmbeddings()[ subitem ] for subitem in unknown_examples ] )
 
   return example_embeddings, example_category
 
+def splitTrainingAndTest(examples) :
+  # split data into training vs test
+  split_fraction = .2
+  training_examples = []
+  test_examples = []
+  for grouping in examples :
+    training_grouping = []
+    test_grouping = []
+    for item in grouping :
+      if random.random() >= split_fraction :
+        training_grouping.append( item )
+      else :
+        test_grouping.append( item )
+    training_examples.append(training_grouping)
+    test_examples.append(test_grouping)
+  return training_examples , test_examples
 
-
-def doTraining(examples,embeddings) :
+def doTraining(examples,embeddings,has_unknown=False) :
   label_graph = tf.Graph()
   with label_graph.as_default() :
-    model = label_model.model(number_of_classes=1+len(examples) )
+    model = label_model.model(number_of_classes=len(examples) + (1 if has_unknown else 0) )
     with tf.Session(graph=label_graph) as sess :
       sess.run( tf.global_variables_initializer() )
-      target_correct = max( 0.95 , min( 0.998 , 1. - 5. / totalExamples(examples) ) )
-      print "Target correct is",target_correct
-      print "Training started",
-      result_correct = 0
+      print "Training started"
+      best_correct = 0
       sample_size = meanExamples(examples)
+      total_examples = totalExamples(examples)
+      training_examples , test_examples = splitTrainingAndTest(examples)
 
-      # split data into training vs test
-      split_fraction = .2
+      for epoch_count in range(200) :
 
-      for epoch_count in range(50) :
-
-        example_embeddings, example_category = prepareDataForTraining(examples,embeddings,sample_size)
-
+        # training
+        example_embeddings, example_category = prepareDataForTraining(training_examples,embeddings,sample_size,has_unknown=has_unknown)
         result_correct = doEpoch( example_embeddings, example_category, model, sess )
 
-        if epoch_count % 10 == 0 :
-          print int(round(result_correct*100)),
+        # test it!
+        example_embeddings, example_category = prepareDataForTraining(test_examples,embeddings,has_unknown=has_unknown,include_unknown=False)
+        test_correct = getScore( example_embeddings, example_category, model, sess )
 
-        if result_correct >= target_correct :
+        if epoch_count % 20 == 0 :
+          print "We got some training",int(round((1-result_correct)*1000))," and test",int(round((1-test_correct)*1000)),"results"
+
+        best_correct = max( best_correct , test_correct )
+
+        if total_examples >= 20 and epoch_count > 10 and ((1-test_correct) >= (1-best_correct) * 2) :
+          print "End condition, test errors doubled from best test errors"
           break
 
-        # run test data and break early if it's going poorly
-
-
-      print "done training with result correct :",result_correct      
+      print "done training with training",int(round((1-result_correct)*1000))," and test",int(round((1-test_correct)*1000)),"results"
       return model,sess.run(
         model.category_out,
         feed_dict={
@@ -83,8 +107,9 @@ def doTraining(examples,embeddings) :
 
 
 def predictiveMultiClassWeights(examples,embeddings) :
-  model,weights = doTraining(examples,embeddings)
-  identity  = np.identity( len(examples) + 1 )
+  has_unknown = True if len(examples) < 3 else False
+  model,weights = doTraining(examples,embeddings,has_unknown)
+  identity  = np.identity( len(examples) + (1 if has_unknown else 0) )
   for category in range(len(examples)) :
     for example in examples[category] :
       weights[example] = identity[category,:]
