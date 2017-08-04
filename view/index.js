@@ -121,7 +121,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         if ( $scope.label_list[label] == undefined ) {
             $scope.label_list[label] = { };
         }
-        console.log("Add these to label " + label);
         var number_of_images = $scope.similar_images.length
         for ( var index in $scope.similar_images ) {
             var data = $scope.similar_images[index];
