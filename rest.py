@@ -132,6 +132,9 @@ class GroupPredict:
       result = previous_group_predict_result
     else :
       result = label_predict.predictiveMultiClassWeights(data,embeddings)
+      if (result.shape[1] == 10) :
+          print "== Compared to the ground truth %0.4f ==" % ( (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() )
+
       previous_group_predict_result = result
       previous_group_predict_data_hash = hash(data_text)
 

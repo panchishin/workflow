@@ -3,13 +3,6 @@ import random
 import numpy as np
 import label_model
 
-def get_mnist_data() :
-  from tensorflow.examples.tutorials.mnist import input_data
-  return input_data.read_data_sets('./cache', one_hot=True)
-
-mnist = get_mnist_data()
-
-
 def _getRandom(examples,embeddings) :
   neg = random.randint(0,embeddings.getEmbeddings().shape[0]-1)
   for item_list in examples :
@@ -148,7 +141,6 @@ def _calculateImportance(examples,embeddings,importance={}) :
   example_split_a , example_split_b = _splitTrainingAndTest(examples)
   model,weights_a = _doTraining( examples, example_split_a, example_split_b, embeddings, importance, _has_unknown(examples) )
   model,weights_b = _doTraining( examples, example_split_b, example_split_a, embeddings, importance, _has_unknown(examples) )
-  print "== The average error over the whole dataset combined a+b is %0.4f ==" % ( (np.argmax( mnist.train.labels , 1 ) != np.argmax( weights_a + weights_b , 1 ) ).mean() )
   return calculateImportanceFromTraining(example_split_a,weights_a,example_split_b,weights_b)
 
 def repeatcalculateImportance(examples,embeddings) :
