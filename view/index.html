@@ -30,14 +30,17 @@
 
 	<div ng-show="show_snapshot_section">
 	<h1>Snapshot Management</h1>
-	        <h2>Create</h2>
-		<div>
-			<p class="inline">Save snapshot</p><input type="text" ng-model="snap_shot_name"><button ng-show="snap_shot_name" class="btn btn-primary btn-sm label_button" ng-click="create_snap_shot(snap_shot_name);snap_shot_name=''">Add</button>
+		<div><div class="texty"><p>Create snapshot</p></div>
+			<input type="text" ng-model="snap_shot_name"><button ng-show="snap_shot_name" class="btn btn-primary btn-sm label_button" ng-click="create_snap_shot(snap_shot_name);snap_shot_name=''">Add</button>
 		</div>
-	        <h2>Use</h2>
-	        <div><button ng-repeat="item in list_snap_shots()" class="btn btn-primary btn-sm" ng-click="load_snap_shot(item)">{{item}}</button></div>
-	        <h2>Remove</h2>
-	        <div><button ng-repeat="item in list_snap_shots()" class="btn btn-danger btn-sm" ng-click="remove_snap_shot(item)">{{item}}</button></div>
+	        <div ng-hide="snapshot_delete_mode">
+	        	<div class="texty" ng-click="snapshot_delete_mode=!snapshot_delete_mode"><p>Use</p></div>
+	        	<button ng-repeat="item in list_snap_shots()" class="btn btn-primary btn-sm" ng-click="load_snap_shot(item)">{{item}}</button>
+		</div>
+	        <div ng-show="snapshot_delete_mode">
+	        	<div class="texty" ng-click="snapshot_delete_mode=!snapshot_delete_mode"><p>Remove</p></div>
+	        	<button ng-repeat="item in list_snap_shots()" class="btn btn-danger btn-sm" ng-click="remove_snap_shot(item)">{{item}}</button>
+		</div>
 	</div>
 
 	<div ng-show="show_embedding_section" class="find_related_images">
