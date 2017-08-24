@@ -3,16 +3,12 @@ import random
 import numpy as np
 import label_model
 
-
-
-
 def _getRandom(examples,embeddings) :
   neg = random.randint(0,embeddings.getEmbeddings().shape[0]-1)
   for item_list in examples :
     if neg in item_list :
       return _getRandom( examples, embeddings )
   return neg
-
 
 def _getScore(embeddings_in,category_in,model,sess) :
   score = sess.run(model.correct,feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
@@ -48,9 +44,7 @@ def _prepareDataForTraining(examples,embeddings,sample_size=0,has_unknown=False,
 
   return example_embeddings, example_category
 
-def _splitTrainingAndTest(examples) :
-  # split data into training vs test
-  split_fraction = .2
+def _splitTrainingAndTest(examples,split_fraction =.5) :
   training_examples = []
   test_examples = []
   for grouping in examples :
@@ -65,19 +59,17 @@ def _splitTrainingAndTest(examples) :
     test_examples.append(test_grouping)
   return training_examples , test_examples
 
-def _doTraining(examples,embeddings,has_unknown=False) :
+def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=False) :
   label_graph = tf.Graph()
   with label_graph.as_default() :
     model = label_model.model(number_of_classes=len(examples) + (1 if has_unknown else 0) )
     with tf.Session(graph=label_graph) as sess :
       sess.run( tf.global_variables_initializer() )
-      print "Training started"
       best_correct = 0
       sample_size = _meanExamples(examples)
       total_examples = _totalExamples(examples)
-      training_examples , test_examples = _splitTrainingAndTest(examples)
-
-      for epoch_count in range(200) :
+      print "Training epoch/train/test ",
+      for epoch_count in range(50) :
 
         # training
         example_embeddings, example_category = _prepareDataForTraining(training_examples,embeddings,sample_size,has_unknown=has_unknown)
@@ -87,16 +79,20 @@ def _doTraining(examples,embeddings,has_unknown=False) :
         example_embeddings, example_category = _prepareDataForTraining(test_examples,embeddings,has_unknown=has_unknown,include_unknown=False)
         test_correct = _getScore( example_embeddings, example_category, model, sess )
 
-        if epoch_count % 20 == 0 :
-          print "We got some training",int(round((1-result_correct)*1000))," and test",int(round((1-test_correct)*1000)),"results"
+        if epoch_count > 0 and epoch_count % 10 == 0 :
+          print ": %3d / %.3f / %.3f " % ( epoch_count, 1-result_correct, 1-test_correct ),
 
         best_correct = max( best_correct , test_correct )
 
-        if total_examples >= 20 and epoch_count > 10 and ((1-test_correct) >= (1-best_correct) * 2) :
-          print "End condition, test errors doubled from best test errors"
+        if total_examples >= 20 and epoch_count > 10 and ((1-test_correct) >= (1-best_correct) * 1.2) :
+          print "End condition = high test error",
+          break
+        if 1-result_correct < 0.0001 :
+          print "End condition = train fit",
           break
 
-      print "done training with training",int(round((1-result_correct)*1000))," and test",int(round((1-test_correct)*1000)),"results"
+      print ": Final %3d / %.3f / %.3f " % ( epoch_count, 1-result_correct, 1-test_correct )
+      
       return model,sess.run(
         model.category_out,
         feed_dict={
@@ -108,7 +104,12 @@ def _doTraining(examples,embeddings,has_unknown=False) :
 
 def predictiveMultiClassWeights(examples,embeddings) :
   has_unknown = True if len(examples) < 3 else False
-  model,weights = _doTraining(examples,embeddings,has_unknown)
+
+  subset_A , subset_B = _splitTrainingAndTest(examples)
+  model,weights_A = _doTraining(examples,subset_A,subset_B,embeddings,has_unknown)
+  model,weights_B = _doTraining(examples,subset_B,subset_A,embeddings,has_unknown)
+  weights = ( weights_A + weights_B ) / 2.
+
   identity  = np.identity( len(examples) + (1 if has_unknown else 0) )
   for category in range(len(examples)) :
     for example in examples[category] :
