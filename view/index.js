@@ -224,9 +224,9 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                 $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : (label != -1) } );
             }
             if ( label != -1 ) {
-            for ( var index in result.data.response.negative ) {
-                $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
-            }
+                for ( var index in result.data.response.negative ) {
+                    $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
+                }
             }
         })
         if ( label >= 0 ) {
