@@ -13,7 +13,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     };
     $scope.similar_images = [];
     $scope.label_list = {};
-    $scope.errors = {};
     $scope.groups = {};
 
     function retrieveSnapShot() {
@@ -103,7 +102,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
               $scope.similar_images.push( { 'id' : result.data.response[index] , 'state' : 1 } );
             }
         })
-        $scope.errors = {};
     }
 
     $scope.learn = function(index) {
@@ -138,7 +136,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                 remaining_list.push(data)
             }
         }
-        $scope.errors = {};
         $scope.similar_images = remaining_list;
         if ( $scope.currentGroup ) {
             $scope.add_to_group($scope.currentGroup,label)
@@ -169,7 +166,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         })
 
         $scope.new_label = label;
-        $scope.errors = {};
     }
 
     $scope.labelsNotInGroup = function(groupName) {
@@ -238,7 +234,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         } else {
           $scope.new_label = "";
         }
-        $scope.errors = {};
     }
 
     $scope.button_confidence = function(label) {
