@@ -128,15 +128,15 @@ class GroupPredict:
     global previous_group_predict_result , previous_group_predict_data_hash
     data_text = req.stream.read()
     data = json.loads( data_text )
-    if hash(data_text) == previous_group_predict_data_hash :
+
+    if hash( json.dumps(data['grouping']) ) == previous_group_predict_data_hash :
       result = previous_group_predict_result
     else :
-      result = label_predict.predictiveMultiClassWeights(data,embeddings)
+      result = label_predict.predictiveMultiClassWeights(data['grouping'],embeddings)
       previous_group_predict_result = result
-      previous_group_predict_data_hash = hash(data_text)
+      previous_group_predict_data_hash = hash( json.dumps(data['grouping']) )
       if (result.shape[1] == 10) :
-        ground = np.argmax( mnist.train.labels , 1 )
-        predict = np.argmax( result , 1 )
+
         print "class :",
         for b in range(10) :
           print "%5d" % b,
@@ -151,6 +151,8 @@ class GroupPredict:
 
         print "  F1  :",
         total_f1 = 0.
+        ground = np.argmax( mnist.train.labels , 1 )
+        predict = np.argmax( result , 1 )
         for a in range(10) :
           precision = 1. * (( ground == a ) * ( predict == a )).sum() / ( predict == a ).sum()
           recall = 1. * (( ground == a ) * ( predict == a )).sum() / ( ground == a ).sum()
