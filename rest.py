@@ -134,6 +134,33 @@ class GroupPredict:
       result = label_predict.predictiveMultiClassWeights(data,embeddings)
       previous_group_predict_result = result
       previous_group_predict_data_hash = hash(data_text)
+      if (result.shape[1] == 10) :
+        print "== Compared to the ground truth %0.4f ==" % ( (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() )
+        ground = np.argmax( mnist.train.labels , 1 )
+        predict = np.argmax( result , 1 )
+        print "      :",
+        for b in range(10) :
+          print "%5d" % b,
+        print "    sum    F1"
+        total_f1 = 0.
+        for a in range(10) :
+          print "%5d :" % a,
+          for b in range(10) :
+            print "%5d" % (( ground == a ) * ( predict == b )).sum(),
+          print "%5d" % ( ground == a ).sum(),
+          precision = 1. * (( ground == a ) * ( predict == a )).sum() / ( predict == a ).sum()
+          recall = 1. * (( ground == a ) * ( predict == a )).sum() / ( ground == a ).sum()
+          f1 = ( 2. * precision * recall / ( precision + recall + 0.01 ))
+          total_f1 += f1
+          print "%5d" % ( 100. * f1 )
+        print "  sum :",
+        prediction_sums = [ ( predict == b ).sum() for b in range(10) ]
+        for item in prediction_sums :
+          print "%5d" % item,
+        print " "
+        rms = (sum( [ (item - sum(prediction_sums)/10.)**2 for item in prediction_sums ] )/10.)**.5
+        print "RMS %5d" % rms , 
+        print "Average F1 %5d" % ( 10. * total_f1 )
 
     if response_index >= 0 :
       result = np.array(result)[:,int(response_index)]
