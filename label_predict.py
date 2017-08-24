@@ -75,7 +75,7 @@ def _doTraining(examples, train_examples, test_examples, embeddings, importance,
       total_examples = _totalExamples(examples)
       train_examples , test_examples = _splitTrainingAndTest(examples)
 
-      for epoch_count in range(50) :
+      for epoch_count in range(150) :
 
         # training
         example_embeddings, example_category, example_weight = _prepareDataForTensorflow(train_examples,embeddings,importance,has_unknown=has_unknown)
@@ -86,7 +86,7 @@ def _doTraining(examples, train_examples, test_examples, embeddings, importance,
         example_embeddings, example_category, example_weight = _prepareDataForTensorflow(test_examples,embeddings,importance,has_unknown=has_unknown,include_unknown=False)
         test_correct = _getScore( example_embeddings, example_category, model, sess )
 
-        if epoch_count % 10 == 0 :
+        if epoch_count % 20 == 0 :
           print "epoch %3d : %.4f training and %0.4f test error" % ( epoch_count, (1-result_correct),(1-test_correct) )
 
         best_correct = max( best_correct , test_correct )
