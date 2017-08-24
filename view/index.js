@@ -121,32 +121,26 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         if ( $scope.label_list[label] == undefined ) {
             $scope.label_list[label] = { };
         }
-        var new_similar_images = [];
         var number_of_images = $scope.similar_images.length
         for ( var index in $scope.similar_images ) {
             var data = $scope.similar_images[index];
             $scope.label_list[label][data.id] = data.state;
-            if ( ! data.state ) {
-                new_similar_images.push( data )
-            }
         }
         $scope.errors = {};
-        $scope.similar_images = new_similar_images;
+        $scope.similar_images = [];
         if ( $scope.currentGroup ) {
             $scope.add_to_group($scope.currentGroup,label)
         }
-        if ( $scope.similar_images.length == 0 ) {
-            if ( $scope.label_score(label) > 0 && $scope.label_score(label) < 200 ) {
-                if ( $scope.currentGroup ) {
-                    //$scope.group_predict($scope.currentGroup,label); 
-                } else {
-                    //$scope.label_predict(label); 
-                }
-            } else if ( !$scope.currentGroup ) {
-                //$scope.similar(getRandomImageIndex())
+        if ( $scope.label_score(label) > 0 && $scope.label_score(label) < 200 ) {
+            if ( $scope.currentGroup ) {
+                $scope.group_predict($scope.currentGroup,label); 
             } else {
-                $scope.new_label = "";
+                $scope.label_predict(label); 
             }
+        } else if ( !$scope.currentGroup ) {
+            $scope.similar(getRandomImageIndex())
+        } else {
+            $scope.new_label = "";
         }
     }
 
