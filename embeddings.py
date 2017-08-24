@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import autoencode_model
 import session
 from scipy import spatial
@@ -33,7 +34,9 @@ def nearestNeighbour(embedding,size=10) :
 def nearestNeighbourByIndex(index,size=10) :
     the_embeddings = getEmbeddings()
     embedding = the_embeddings[index]
+    offset = random.randint(0,50000)
+    the_embeddings = the_embeddings[offset:(offset+2000),:]
     index_list = range(the_embeddings.shape[0])
     distances = np.array([ calculateDistance(embedding,the_embeddings[other]) for other in index_list ])
     nearest = np.argsort( distances )[:size]
-    return np.array(index_list)[nearest]
+    return np.array(index_list)[nearest]+offset
