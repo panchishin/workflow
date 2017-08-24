@@ -120,20 +120,23 @@ class Similar:
 
 previous_group_predict_result = None
 previous_group_predict_data_hash = 0
+previous_group_predict_page = 0
 
 class GroupPredict:
   def on_post(self, req, resp, response_index):
     response_index = int(response_index)
     
-    global previous_group_predict_result , previous_group_predict_data_hash
+    global previous_group_predict_result , previous_group_predict_data_hash , previous_group_predict_page
     data_text = req.stream.read()
     data = json.loads( data_text )
 
     if hash( json.dumps(data['grouping']) ) == previous_group_predict_data_hash :
       result = previous_group_predict_result
+      previous_group_predict_page = (previous_group_predict_page + 1) % 20
     else :
       result = label_predict.predictiveMultiClassWeights(data['grouping'],embeddings)
       previous_group_predict_result = result
+      previous_group_predict_page = 0
       previous_group_predict_data_hash = hash( json.dumps(data['grouping']) )
       if (result.shape[1] == 10) :
 
@@ -143,6 +146,7 @@ class GroupPredict:
         print " "
 
         print "count :",
+        predict = np.argmax( result , 1 )
         prediction_sums = [ ( predict == b ).sum() for b in range(10) ]
         for item in prediction_sums :
           print "%5d" % item,
@@ -152,7 +156,6 @@ class GroupPredict:
         print "  F1  :",
         total_f1 = 0.
         ground = np.argmax( mnist.train.labels , 1 )
-        predict = np.argmax( result , 1 )
         for a in range(10) :
           precision = 1. * (( ground == a ) * ( predict == a )).sum() / ( predict == a ).sum()
           recall = 1. * (( ground == a ) * ( predict == a )).sum() / ( ground == a ).sum()
@@ -162,17 +165,26 @@ class GroupPredict:
         print "AVG %5d" % ( 10. * total_f1 )
         print "== Ground truth error %5.2f ==\n" % ( 100.* (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() )
 
+    max_result = np.max(result,1)
     if response_index >= 0 :
       result = np.array(result)[:,int(response_index)]
     else :
-      result = 1. - np.max(result,1)
+      result = max_result
     
-    likely_filter = ( result < 1. ) * ( result > .0 )
+    likely_filter = ( result < 1. ) * ( result > .0 ) * ( result == max_result )
     likely_weight = result[ likely_filter ]
     likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
-    positive = likely_index[np.argsort(likely_weight)][::-1][random.randint(0,9)::random.randint(8,12)][:10].tolist()
+    positive = likely_index[np.argsort(likely_weight)]
 
-    resp.body = json.dumps( { 'response' : { 'positive' : positive , 'negative' : [] } } )
+    if data['confidence'] == "low" :
+      positive = positive[previous_group_predict_page*20:][:10].tolist()
+    elif data['confidence'] == "medium" :
+      middle = positive.shape[0] / 2 + (previous_group_predict_page - 10)*20
+      positive = positive[middle:][:10].tolist()
+    else :
+      positive = positive[::-1][previous_group_predict_page*20:][:10].tolist()
+
+    resp.body = json.dumps( { 'response' : { 'positive' : positive } } )
 
 
 

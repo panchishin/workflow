@@ -109,6 +109,11 @@
 		<div class="imageline" ng-show="similar_images.length == 0">
 			<div class="texty"><p>No Images</p></div>
 			<button class="btn btn-primary btn-sm label_button" ng-click="randomizeImage()">Random</button>
+
+			<div class="texty"><p>Confidence</p></div>
+			<button class="btn {{confidence=='high'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='high'">High</button>
+			<button class="btn {{confidence=='medium'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='medium'">Med</button>
+			<button class="btn {{confidence=='low'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='low'">Low</button>
 	  	</div>	
 		<div class="imageline" ng-show="similar_images.length > 0">
 			<div class="texty"><p>Images Found</p></div>
@@ -117,6 +122,12 @@
 			</span>
 			<button class="btn btn-primary btn-sm label_button" ng-click="reverseSimilarImages()">Flip</button>
 			<button class="btn btn-primary btn-sm label_button" ng-click="randomizeImage()">Random</button>
+
+			<div class="texty"><p>Search confidence</p></div>
+			<button class="btn {{confidence=='high'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='high'">High</button>
+			<button class="btn {{confidence=='medium'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='medium'">Med</button>
+			<button class="btn {{confidence=='low'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='low'">Low</button>
+
 		</div>
 		<div class="label_area">
 		  	<div class="texty"><p>Add to label</p></div>
