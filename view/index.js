@@ -95,9 +95,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     $scope.similar = function(index) {
         $scope.new_label="";
-        console.log("calling similar ...");
         $http({method:"GET" , url : "/similar/"+index , cache: false}).then(function successCallback(result) {
-            console.log("... done");
             $scope.similar_images = []
             for ( var index in result.data.response ) {
               $scope.similar_images.push( { 'id' : result.data.response[index] , 'state' : 1 } );
@@ -106,9 +104,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     $scope.learn = function(index) {
-        console.log("LEARNING...");
         $http({ method : "GET" , url : "/learn/"+index , cache: false}).then(function successCallback(result) {
-            console.log("...DONE");
             $scope.data.training_sessions[index] += 1;
             $scope.randomizeImage();
         })
