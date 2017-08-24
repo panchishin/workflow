@@ -68,8 +68,8 @@ def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=
       best_correct = 0
       sample_size = _meanExamples(examples)
       total_examples = _totalExamples(examples)
-      print "Training epoch/train/test ",
-      for epoch_count in range(50) :
+      print "Training epoch,train,test ",
+      for epoch_count in range(100) :
 
         # training
         example_embeddings, example_category = _prepareDataForTraining(training_examples,embeddings,sample_size,has_unknown=has_unknown)
@@ -80,18 +80,18 @@ def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=
         test_correct = _getScore( example_embeddings, example_category, model, sess )
 
         if epoch_count > 0 and epoch_count % 10 == 0 :
-          print ": %3d / %.3f / %.3f " % ( epoch_count, 1-result_correct, 1-test_correct ),
+          print ": %3d,%.3f,%.3f" % ( epoch_count, 1-result_correct, 1-test_correct ),
 
         best_correct = max( best_correct , test_correct )
 
         if total_examples >= 20 and epoch_count > 10 and ((1-test_correct) >= (1-best_correct) * 1.2) :
-          print "End condition = high test error",
+          print "End > test error",
           break
-        if 1-result_correct < 0.0001 :
-          print "End condition = train fit",
+        if total_examples >= 20 and epoch_count > 10 and 1-result_correct < 0.0001 :
+          print "End > train fit ",
           break
 
-      print ": Final %3d / %.3f / %.3f " % ( epoch_count, 1-result_correct, 1-test_correct )
+      print ": Final %3d,%.3f,%.3f" % ( epoch_count, 1-result_correct, 1-test_correct )
       
       return model,sess.run(
         model.category_out,
@@ -114,4 +114,5 @@ def predictiveMultiClassWeights(examples,embeddings) :
   for category in range(len(examples)) :
     for example in examples[category] :
       weights[example] = identity[category,:]
+
   return weights

@@ -38,7 +38,7 @@ def falconRespondArrayAsImage(data,resp) :
   resp.body = arrayToImage(data)
 
 
-print """
+"""
 ================================
 Define the rest endpoints
 ================================
@@ -181,7 +181,7 @@ class GroupPredict:
 
 
 
-print """
+"""
 ================================
 Add the endpoints to the service
 ================================
