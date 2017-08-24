@@ -141,13 +141,6 @@ class GroupPredict:
         for b in range(10) :
           print "%5d" % b,
         print " "
-        """
-        for a in range(10) :
-          print "%5d :" % a,
-          for b in range(10) :
-            print "%5d" % (( ground == a ) * ( predict == b )).sum(),
-          print "%5d" % ( ground == a ).sum()
-        """
 
         print "count :",
         prediction_sums = [ ( predict == b ).sum() for b in range(10) ]
