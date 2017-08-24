@@ -36,6 +36,12 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             $scope[item] = snap_shot[item];
         })
     }
+    
+    $scope.remove_snap_shot = function(snap_shot_name) {
+        var snap_shots = retrieveSnapShot();
+        delete snap_shots[snap_shot_name]
+        localStorage.setItem("snap_shots",JSON.stringify(snap_shots))
+    }
 
     $scope.create_snap_shot = function(snap_shot_name) {
         var snap_shots = retrieveSnapShot();
@@ -52,8 +58,11 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     $scope.randomizeImage = function() {
         $scope.data.images = []
+        $scope.similar_images = []
         for (index=0 ; index < 10 ; index++ ) {
-            $scope.data.images.push( getRandomImageIndex() )
+            var image = getRandomImageIndex()
+            $scope.data.images.push( image )
+            $scope.similar_images.push( { 'id' : image , 'state' : 0 } )
         }
     }
     $scope.randomizeImage()
@@ -96,7 +105,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         })
         $scope.errors = {};
     }
-    $scope.similar(getRandomImageIndex())
 
     $scope.learn = function(index) {
         console.log("LEARNING...");
@@ -122,26 +130,20 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             $scope.label_list[label] = { };
         }
         var number_of_images = $scope.similar_images.length
+        var remaining_list = []
         for ( var index in $scope.similar_images ) {
             var data = $scope.similar_images[index];
             $scope.label_list[label][data.id] = data.state;
+            if (! data.state ) {
+                remaining_list.push(data)
+            }
         }
         $scope.errors = {};
-        $scope.similar_images = [];
+        $scope.similar_images = remaining_list;
         if ( $scope.currentGroup ) {
             $scope.add_to_group($scope.currentGroup,label)
         }
-        if ( $scope.label_score(label) > 0 && $scope.label_score(label) < 200 ) {
-            if ( $scope.currentGroup ) {
-                $scope.group_predict($scope.currentGroup,label); 
-            } else {
-                $scope.label_predict(label); 
-            }
-        } else if ( !$scope.currentGroup ) {
-            $scope.similar(getRandomImageIndex())
-        } else {
-            $scope.new_label = "";
-        }
+        $scope.new_label = "";
     }
 
     $scope.label_predict = function(label) {
@@ -198,19 +200,27 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         delete($scope.groups[group_name]);
     }
 
+    $scope.previous_data_list = null;
+    $scope.pause_training = false;
+
     $scope.group_predict = function(groupName,label) {
         $scope.currentGroup = groupName
         var data_list = [];
         var labels = Object.keys( $scope.groups[groupName]['labels_in'] )
-        for( var label_index in labels ) {
-            var sub_list = [];
-            data_list.push(sub_list);
-            var label_list = $scope.label_list[labels[label_index]]
-            for( var index in label_list ) {
-                if ( label_list[index] == 1 ) {
-                    sub_list.push(parseInt(index));
-                }
+        if ($scope.pause_training && $scope.previous_data_list) {
+            data_list = $scope.previous_data_list
+        } else {
+            for( var label_index in labels ) {
+                var sub_list = [];
+                data_list.push(sub_list);
+                var label_list = $scope.label_list[labels[label_index]]
+                for( var index in label_list ) {
+                    if ( label_list[index] == 1 ) {
+                        sub_list.push(parseInt(index));
+                    }
+                }  
             }
+            $scope.previous_data_list = data_list
         }
         $http({method:"POST" , url : "/group_predict/" + labels.indexOf(label) , cache: false , data:data_list}).then(function successCallback(result) {
             $scope.similar_images = []

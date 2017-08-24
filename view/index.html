@@ -9,6 +9,9 @@
 <body ng-controller="mainController">
 	<h1>Session Controls</h1>
 	<div class="session_controls">
+		<button ng-show="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Paused</button>
+		<button ng-hide="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Live</button>
+
 		<button class="btn btn-primary btn-sm" ng-click="show_embedding_section=!show_embedding_section">Embeddings</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_label_section=!show_label_section">Labels</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_snapshot_section=!show_snapshot_section">Snapshots</button>
@@ -17,8 +20,14 @@
 
 	<div ng-show="show_snapshot_section">
 	<h1>Snapshot Management</h1>
-		<button ng-repeat="item in list_snap_shots()" class="btn btn-primary btn-sm" ng-click="load_snap_shot(item)">{{item}}</button>
-		<p class="inline">Save snapshot</p><input type="text" ng-model="snap_shot_name"><button ng-show="snap_shot_name" class="btn btn-primary btn-sm label_button" ng-click="create_snap_shot(snap_shot_name);snap_shot_name=''">Add</button>
+	        <h2>Create</h2>
+		<div>
+			<p class="inline">Save snapshot</p><input type="text" ng-model="snap_shot_name"><button ng-show="snap_shot_name" class="btn btn-primary btn-sm label_button" ng-click="create_snap_shot(snap_shot_name);snap_shot_name=''">Add</button>
+		</div>
+	        <h2>Use</h2>
+	        <div><button ng-repeat="item in list_snap_shots()" class="btn btn-primary btn-sm" ng-click="load_snap_shot(item)">{{item}}</button></div>
+	        <h2>Remove</h2>
+	        <div><button ng-repeat="item in list_snap_shots()" class="btn btn-danger btn-sm" ng-click="remove_snap_shot(item)">{{item}}</button></div>
 	</div>
 
 	<div ng-show="show_embedding_section" class="find_related_images">
@@ -98,7 +107,8 @@
 	<div>
 	<h1>Search Results</h1>
 		<div class="imageline" ng-show="similar_images.length == 0">
-			<p>Select an image or label from above</p>
+			<div class="texty"><p>No Images</p></div>
+			<button class="btn btn-primary btn-sm label_button" ng-click="randomizeImage()">Random</button>
 	  	</div>	
 		<div class="imageline" ng-show="similar_images.length > 0">
 			<div class="texty"><p>Images Found</p></div>
@@ -106,6 +116,7 @@
 				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}/{{0}}" ng-click="data.state=1-data.state"></img>
 			</span>
 			<button class="btn btn-primary btn-sm label_button" ng-click="reverseSimilarImages()">Flip</button>
+			<button class="btn btn-primary btn-sm label_button" ng-click="randomizeImage()">Random</button>
 		</div>
 		<div class="label_area">
 		  	<div class="texty"><p>Add to label</p></div>
