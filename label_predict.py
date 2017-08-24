@@ -87,7 +87,7 @@ def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=
         if total_examples >= 20 and epoch_count >= 10 and ((1-test_correct) >= (1-best_correct) * 1.5) :
           print "End > test error",
           break
-        if total_examples >= 20 and epoch_count > 10 and 1-result_correct < 0.0001 :
+        if total_examples >= 20 and epoch_count >= 10 and 1-result_correct < 0.0001 :
           print "End > train fit ",
           break
 
