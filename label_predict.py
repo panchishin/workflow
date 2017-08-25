@@ -110,9 +110,4 @@ def predictiveMultiClassWeights(examples,embeddings) :
   model,weights_B = _doTraining(examples,subset_B,subset_A,embeddings,has_unknown)
   weights = ( weights_A + weights_B ) / 2.
 
-  identity  = np.identity( len(examples) + (1 if has_unknown else 0) )
-  for category in range(len(examples)) :
-    for example in examples[category] :
-      weights[example] = identity[category,:]
-
   return weights

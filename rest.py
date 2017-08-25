@@ -169,13 +169,18 @@ class GroupPredict:
       if (result.shape[1] == 10) :
         self.report(result)
 
-
+    examples = data['grouping']
+    identity  = np.identity( result.shape[1] )
+    for category in range(len(examples)) :
+      for example in examples[category] :
+        result[example] = identity[category,:]
+    
     max_result = np.max(result,1)
     if response_index >= 0 :
       result = np.array(result)[:,int(response_index)]
     else :
       result = max_result
-    
+
     likely_filter = ( result < 1. ) * ( result > .0 ) * ( result == max_result )
     likely_weight = result[ likely_filter ]
     likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
