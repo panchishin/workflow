@@ -3,7 +3,7 @@ import layer
 
 class model:
 
-  def __init__(self,number_of_classes=2):
+  def __init__(self,number_of_classes=2,training_factor=.3):
     self.emb_in = tf.placeholder(tf.float32, [None, 32] , name="emb_in")
     self.category_in = tf.placeholder(tf.float32, [None, number_of_classes] , name="category")
     self.dropout = tf.placeholder(tf.float32)
@@ -23,7 +23,7 @@ class model:
     self.category_out = tf.nn.softmax( self.layer1 )
     
     self.loss = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits( labels=self.category_in, logits=self.layer1) )
-    self.train = tf.train.AdamOptimizer(.1).minimize(self.loss)
+    self.train = tf.train.AdamOptimizer(training_factor).minimize(self.loss)
     
     self.correct = tf.reduce_mean( tf.cast( tf.equal( tf.argmax( self.category_in , 1 ) , tf.argmax( self.layer1 , 1 ) ) , dtype=tf.float32 ) )
     

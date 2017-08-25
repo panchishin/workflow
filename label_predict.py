@@ -69,7 +69,7 @@ def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=
       sample_size = _meanExamples(examples)
       total_examples = _totalExamples(examples)
       print "Training epoch,train,test ",
-      for epoch_count in range(100) :
+      for epoch_count in range(50) :
 
         # training
         example_embeddings, example_category = _prepareDataForTraining(training_examples,embeddings,sample_size,has_unknown=has_unknown)
