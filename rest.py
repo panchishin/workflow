@@ -151,15 +151,20 @@ class GroupPredict:
       total_f1 += f1
       print "%5d" % ( 100. * f1 ),
     print "AVG %5d" % ( 10. * total_f1 )
-    print "== Ground truth error %5.2f ==\n" % ( 100.* (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() )
+    print "== Ground truth error %5.2f == error,signal,count : " % ( 100.* (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() ),
+    for confidence in [.5,.75,.9,.95,.99] :
+      conf_filter = np.max( result , 1 ) >= confidence
+      print "%5.2f %4.2f %5d ," % ( 100.* (np.argmax( mnist.train.labels[conf_filter,:] , 1 ) != np.argmax( result[conf_filter,:] , 1 ) ).mean(), confidence, conf_filter.sum() ),
+    print ""
 
   def on_post(self, req, resp, response_index):
     response_index = int(response_index)
     
     data_text = req.stream.read()
     data = json.loads( data_text )
+    grouping = data['grouping']
 
-    if hash( json.dumps(data['grouping']) ) == self.previous_group_predict_data_hash :
+    if hash( json.dumps(grouping) ) == self.previous_group_predict_data_hash :
       result = self.previous_group_predict_result
       if response_index == self.previous_response_index :
         self.previous_group_predict_page = (self.previous_group_predict_page + 1) % 5
@@ -167,10 +172,10 @@ class GroupPredict:
         self.previous_response_index = response_index
         self.previous_group_predict_page = 0
     else :
-      result = label_predict.predictiveMultiClassWeights(data['grouping'],embeddings)
+      result = label_predict.predictiveMultiClassWeights(grouping,embeddings)
       self.previous_group_predict_result = result
       self.previous_group_predict_page = 0
-      self.previous_group_predict_data_hash = hash( json.dumps(data['grouping']) )
+      self.previous_group_predict_data_hash = hash( json.dumps(grouping) )
       if (result.shape[1] == 10) :
         self.report(result)
 
@@ -180,11 +185,10 @@ class GroupPredict:
     else :
       result = max_result
 
-    examples = data['grouping']
     isLabeled = np.zeros( result.shape[0] )
-    for category in range(len(examples)) :
+    for category in range(len(grouping)) :
       if category == response_index :
-        for example in examples[category] :
+        for example in grouping[category] :
           isLabeled[example] = 1
     
     if data['isLabeled'] == 1 :
@@ -196,13 +200,13 @@ class GroupPredict:
     likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
     positive = likely_index[np.argsort(likely_weight)]
 
-    if data['confidence'] == "low" :
-      positive = positive[self.previous_group_predict_page*10:][:10].tolist()
-    elif data['confidence'] == "medium" :
-      middle = positive.shape[0] / 2 + (self.previous_group_predict_page - 5)*10
-      positive = positive[middle:][:10].tolist()
-    else :
-      positive = positive[::-1][self.previous_group_predict_page*10:][:10].tolist()
+    if data['order'] == 'forward' :
+      positive = positive[::-1]
+
+    index = int( positive.shape[0] * data['index'] )
+    positive = positive[index:]
+
+    positive = positive[self.previous_group_predict_page*10:][:10].tolist()
 
     resp.body = json.dumps( { 'response' : { 'positive' : positive } } )
 
