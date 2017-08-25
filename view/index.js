@@ -14,7 +14,8 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.similar_images = [];
     $scope.label_list = {};
     $scope.groups = {};
-    $scope.confidence = "high";
+    $scope.confidence = "medium";
+    $scope.isLabeled = 0;
 
     function retrieveSnapShot() {
         var snap_shots = localStorage.getItem("snap_shots");
@@ -152,7 +153,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             }
         }
 
-        $http({method:"POST" , url : "/group_predict/0" , cache: false , data:{'confidence':$scope.confidence,'grouping':[pos_list,neg_list]}}).then(function successCallback(result) {
+        $http({method:"POST" , url : "/group_predict/0" , cache: false , data:{'isLabeled':$scope.isLabeled,'confidence':$scope.confidence,'grouping':[pos_list,neg_list]}}).then(function successCallback(result) {
             $scope.similar_images = []
             for ( var index in result.data.response.positive ) {
                 $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : 1 } );
@@ -215,7 +216,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             }
             $scope.previous_data_list = data_list
         }
-        $http({method:"POST" , url : "/group_predict/" + labels.indexOf(label) , cache: false , data:{'confidence':$scope.confidence,'grouping':data_list}  }).then(function successCallback(result) {
+        $http({method:"POST" , url : "/group_predict/" + labels.indexOf(label) , cache: false , data:{'isLabeled':$scope.isLabeled,'confidence':$scope.confidence,'grouping':data_list}  }).then(function successCallback(result) {
             $scope.similar_images = []
             for ( var index in result.data.response.positive ) {
                 $scope.similar_images.push( { 'id' : result.data.response.positive[index] , 'state' : (label != -1) } );

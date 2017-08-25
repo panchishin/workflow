@@ -26,6 +26,9 @@
 		<button class="btn {{confidence=='high'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='high'">High</button>
 		<button class="btn {{confidence=='medium'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='medium'">Med</button>
 		<button class="btn {{confidence=='low'?'btn-primary':''}} btn-sm label_button" ng-click="confidence='low'">Low</button>
+		<div class="texty"><p>Mode</p></div>
+		<button class="btn {{isLabeled==0?'btn-primary':''}} btn-sm label_button" ng-click="isLabeled=0;confidence='medium'">Search</button>
+		<button class="btn {{isLabeled==1?'btn-primary':''}} btn-sm label_button" ng-click="isLabeled=1;confidence='low'">Review</button>
 	</div>
 
 	<div ng-show="show_snapshot_section">

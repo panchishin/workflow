@@ -125,6 +125,7 @@ class GroupPredict:
     self.previous_group_predict_result = None
     self.previous_group_predict_data_hash = 0
     self.previous_group_predict_page = 0
+    self.previous_response_index = -1
 
   def report(self, result) :
     print "class :",
@@ -160,7 +161,11 @@ class GroupPredict:
 
     if hash( json.dumps(data['grouping']) ) == self.previous_group_predict_data_hash :
       result = self.previous_group_predict_result
-      self.previous_group_predict_page = (self.previous_group_predict_page + 1) % 20
+      if response_index == self.previous_response_index :
+        self.previous_group_predict_page = (self.previous_group_predict_page + 1) % 5
+      else :
+        self.previous_response_index = response_index
+        self.previous_group_predict_page = 0
     else :
       result = label_predict.predictiveMultiClassWeights(data['grouping'],embeddings)
       self.previous_group_predict_result = result
@@ -169,30 +174,35 @@ class GroupPredict:
       if (result.shape[1] == 10) :
         self.report(result)
 
-    examples = data['grouping']
-    identity  = np.identity( result.shape[1] )
-    for category in range(len(examples)) :
-      for example in examples[category] :
-        result[example] = identity[category,:]
-    
     max_result = np.max(result,1)
     if response_index >= 0 :
-      result = np.array(result)[:,int(response_index)]
+      result = np.array(result)[:,response_index]
     else :
       result = max_result
 
-    likely_filter = ( result < 1. ) * ( result > .0 ) * ( result == max_result )
+    examples = data['grouping']
+    isLabeled = np.zeros( result.shape[0] )
+    for category in range(len(examples)) :
+      if category == response_index :
+        for example in examples[category] :
+          isLabeled[example] = 1
+    
+    if data['isLabeled'] == 1 :
+      likely_filter = ( isLabeled >= 1. )
+    else :
+      likely_filter = ( isLabeled < 1. ) * ( result == max_result )
+
     likely_weight = result[ likely_filter ]
     likely_index  = np.array(range(result.shape[0]))[ likely_filter ]
     positive = likely_index[np.argsort(likely_weight)]
 
     if data['confidence'] == "low" :
-      positive = positive[self.previous_group_predict_page*20:][:10].tolist()
+      positive = positive[self.previous_group_predict_page*10:][:10].tolist()
     elif data['confidence'] == "medium" :
-      middle = positive.shape[0] / 2 + (self.previous_group_predict_page - 10)*20
+      middle = positive.shape[0] / 2 + (self.previous_group_predict_page - 5)*10
       positive = positive[middle:][:10].tolist()
     else :
-      positive = positive[::-1][self.previous_group_predict_page*20:][:10].tolist()
+      positive = positive[::-1][self.previous_group_predict_page*10:][:10].tolist()
 
     resp.body = json.dumps( { 'response' : { 'positive' : positive } } )
 
