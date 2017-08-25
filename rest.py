@@ -118,11 +118,14 @@ class Similar:
     resp.body = json.dumps( { 'response' : names } )
 
 
-previous_group_predict_result = None
-previous_group_predict_data_hash = 0
-previous_group_predict_page = 0
+
 
 class GroupPredict:
+  def __init__(self) :
+    self.previous_group_predict_result = None
+    self.previous_group_predict_data_hash = 0
+    self.previous_group_predict_page = 0
+
   def report(self, result) :
     print "class :",
     for b in range(10) :
@@ -152,18 +155,17 @@ class GroupPredict:
   def on_post(self, req, resp, response_index):
     response_index = int(response_index)
     
-    global previous_group_predict_result , previous_group_predict_data_hash , previous_group_predict_page
     data_text = req.stream.read()
     data = json.loads( data_text )
 
-    if hash( json.dumps(data['grouping']) ) == previous_group_predict_data_hash :
-      result = previous_group_predict_result
-      previous_group_predict_page = (previous_group_predict_page + 1) % 20
+    if hash( json.dumps(data['grouping']) ) == self.previous_group_predict_data_hash :
+      result = self.previous_group_predict_result
+      self.previous_group_predict_page = (self.previous_group_predict_page + 1) % 20
     else :
       result = label_predict.predictiveMultiClassWeights(data['grouping'],embeddings)
-      previous_group_predict_result = result
-      previous_group_predict_page = 0
-      previous_group_predict_data_hash = hash( json.dumps(data['grouping']) )
+      self.previous_group_predict_result = result
+      self.previous_group_predict_page = 0
+      self.previous_group_predict_data_hash = hash( json.dumps(data['grouping']) )
       if (result.shape[1] == 10) :
         self.report(result)
 
@@ -180,12 +182,12 @@ class GroupPredict:
     positive = likely_index[np.argsort(likely_weight)]
 
     if data['confidence'] == "low" :
-      positive = positive[previous_group_predict_page*20:][:10].tolist()
+      positive = positive[self.previous_group_predict_page*20:][:10].tolist()
     elif data['confidence'] == "medium" :
-      middle = positive.shape[0] / 2 + (previous_group_predict_page - 10)*20
+      middle = positive.shape[0] / 2 + (self.previous_group_predict_page - 10)*20
       positive = positive[middle:][:10].tolist()
     else :
-      positive = positive[::-1][previous_group_predict_page*20:][:10].tolist()
+      positive = positive[::-1][self.previous_group_predict_page*20:][:10].tolist()
 
     resp.body = json.dumps( { 'response' : { 'positive' : positive } } )
 
