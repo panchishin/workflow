@@ -123,6 +123,32 @@ previous_group_predict_data_hash = 0
 previous_group_predict_page = 0
 
 class GroupPredict:
+  def report(self, result) :
+    print "class :",
+    for b in range(10) :
+      print "%5d" % b,
+    print " "
+
+    print "count :",
+    predict = np.argmax( result , 1 )
+    prediction_sums = [ ( predict == b ).sum() for b in range(10) ]
+    for item in prediction_sums :
+      print "%5d" % item,
+    rms = (sum( [ (item - sum(prediction_sums)/10.)**2 for item in prediction_sums ] )/10.)**.5
+    print "RMS %5d" % rms
+
+    print "  F1  :",
+    total_f1 = 0.
+    ground = np.argmax( mnist.train.labels , 1 )
+    for a in range(10) :
+      precision = 1. * (( ground == a ) * ( predict == a )).sum() / ( predict == a ).sum()
+      recall = 1. * (( ground == a ) * ( predict == a )).sum() / ( ground == a ).sum()
+      f1 = ( 2. * precision * recall / ( precision + recall + 0.01 ))
+      total_f1 += f1
+      print "%5d" % ( 100. * f1 ),
+    print "AVG %5d" % ( 10. * total_f1 )
+    print "== Ground truth error %5.2f ==\n" % ( 100.* (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() )
+
   def on_post(self, req, resp, response_index):
     response_index = int(response_index)
     
@@ -139,31 +165,8 @@ class GroupPredict:
       previous_group_predict_page = 0
       previous_group_predict_data_hash = hash( json.dumps(data['grouping']) )
       if (result.shape[1] == 10) :
+        self.report(result)
 
-        print "class :",
-        for b in range(10) :
-          print "%5d" % b,
-        print " "
-
-        print "count :",
-        predict = np.argmax( result , 1 )
-        prediction_sums = [ ( predict == b ).sum() for b in range(10) ]
-        for item in prediction_sums :
-          print "%5d" % item,
-        rms = (sum( [ (item - sum(prediction_sums)/10.)**2 for item in prediction_sums ] )/10.)**.5
-        print "RMS %5d" % rms
-
-        print "  F1  :",
-        total_f1 = 0.
-        ground = np.argmax( mnist.train.labels , 1 )
-        for a in range(10) :
-          precision = 1. * (( ground == a ) * ( predict == a )).sum() / ( predict == a ).sum()
-          recall = 1. * (( ground == a ) * ( predict == a )).sum() / ( ground == a ).sum()
-          f1 = ( 2. * precision * recall / ( precision + recall + 0.01 ))
-          total_f1 += f1
-          print "%5d" % ( 100. * f1 ),
-        print "AVG %5d" % ( 10. * total_f1 )
-        print "== Ground truth error %5.2f ==\n" % ( 100.* (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() )
 
     max_result = np.max(result,1)
     if response_index >= 0 :
