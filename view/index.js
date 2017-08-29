@@ -240,6 +240,9 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
 
+    /***************************   TSNE CODE  BEGIN   ***********************************/
+
+
     var img_size = 16;
     var svg_width = 800;
     var svg_height = 400;
@@ -379,4 +382,8 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             d3.selectAll( 'g.state.selection').classed( "selection", false);
         } } catch (e) { }
     });
+
+    /***************************   TSNE CODE  END   ***********************************/
+
+
 });
