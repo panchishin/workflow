@@ -3,6 +3,7 @@ div.svg_border {
     border-color : black;
     border-style : solid;
     display: inline-block;
+    overflow: hidden;
 }
 
 
