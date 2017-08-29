@@ -238,4 +238,145 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.button_confidence = function(label) {
         return $scope.label_score(label) < 50 ? 'btn-danger' : $scope.label_score(label) < 200 ? 'btn-warning' : 'btn-success'
     }
+
+
+    var img_size = 16;
+    var svg_width = 800;
+    var svg_height = 400;
+
+    window.states = [
+        { x : .43, y : .67, id : 53303 },
+        { x : .140, y : .150, id : 2838 },
+        { x : .200, y : .250, id : 43799 },
+        { x : .300, y : .120, id : 43798 },
+        { x : .50, y : .250, id : 43797 },
+        { x : .90, y : .170, id : 43796 }
+    ]
+
+    window.svg = d3.select("svg")
+    .attr("width", svg_width)
+    .attr("height", svg_height);
+
+
+    var gStates = svg.selectAll("g.state").data( states );
+
+    var gState = gStates.enter().append( "g" )
+        .attr({
+            "transform" : function( d) {
+                return "translate("+ [d.x*svg_width,d.y*svg_height] + ")";
+            },
+            'class'     : 'state' 
+        })
+    ;
+
+
+    gState.append( "rect")
+        .attr({
+            x : -2 , y : -2 ,
+            height : img_size+4 , width : img_size+4 ,
+            class   : 'outer'
+        })
+    ;
+    gState.append( "rect")
+        .attr({
+            height : img_size , width : img_size ,
+            class   : 'inner'
+        })
+    ;        
+
+    gState.append("image")
+        .attr( "xlink:href" , function(d) { return "http://localhost:9090/layer-1/" + d.id + "/0" } )
+        .attr( { height:img_size, width:img_size })
+
+
+    svg
+    .on( "mousedown", function() {
+        if( !d3.event.ctrlKey) {
+            d3.selectAll( 'g.selected').classed( "selected", false);
+        }
+
+        var p = d3.mouse( this);
+
+        svg.append( "rect")
+        .attr({
+            rx      : 6,
+            ry      : 6,
+            class   : "selection",
+            x       : p[0],
+            y       : p[1],
+            width   : 0,
+            height  : 0
+        })
+    })
+    .on( "mousemove", function() {
+        var s = svg.select( "rect.selection");
+
+        if( !s.empty()) {
+            var p = d3.mouse( this),
+                d = {
+                    x       : parseInt( s.attr( "x"), 10),
+                    y       : parseInt( s.attr( "y"), 10),
+                    width   : parseInt( s.attr( "width"), 10),
+                    height  : parseInt( s.attr( "height"), 10)
+                },
+                move = {
+                    x : p[0] - d.x,
+                    y : p[1] - d.y
+                }
+            ;
+
+            if( move.x < 1 || (move.x*2<d.width)) {
+                d.x = p[0];
+                d.width -= move.x;
+            } else {
+                d.width = move.x;       
+            }
+
+            if( move.y < 1 || (move.y*2<d.height)) {
+                d.y = p[1];
+                d.height -= move.y;
+            } else {
+                d.height = move.y;       
+            }
+           
+            s.attr( d);
+
+                // deselect all temporary selected state objects
+            d3.selectAll( 'g.state.selection.selected').classed( "selected", false);
+
+            d3.selectAll( 'g.state >rect.inner').each( function( state_data, i) {
+                if( 
+                    !d3.select( this).classed( "selected") && 
+                        // inner rect inside selection frame
+                    state_data.x*svg_width>=d.x && state_data.x*svg_width+img_size<=d.x+d.width && 
+                    state_data.y*svg_height>=d.y && state_data.y*svg_height+img_size<=d.y+d.height
+                ) {
+
+                    d3.select( this.parentNode)
+                    .classed( "selection", true)
+                    .classed( "selected", true);
+                }
+            });
+        }
+    })
+    .on( "mouseup", function() {
+           // remove selection frame
+        svg.selectAll( "rect.selection").remove();
+
+            // remove temporary selection marker class
+        d3.selectAll( 'g.state.selection').classed( "selection", false);
+
+        // print out the id's of all the selected images
+        d3.selectAll( 'g.state.selected').each( function(d) { console.log(d.id) } )
+    })
+    .on( "mouseout", function() {
+        try {
+        if( d3.event.relatedTarget.tagName=='HTML') {
+                // remove selection frame
+            svg.selectAll( "rect.selection").remove();
+
+                // remove temporary selection marker class
+            d3.selectAll( 'g.state.selection').classed( "selection", false);
+        } } catch (e) { }
+    });
 });

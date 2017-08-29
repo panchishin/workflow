@@ -1,10 +1,12 @@
 <html ng-app="imageWorkflow">
 <head>
 	<title>Data Workflow</title>
+	<script src="/view/d3.v3.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
 	<script src="/view/index.js"></script>
 	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"/>
 	<link rel="stylesheet" type="text/css" href="/view/index.css"/>
+	<link rel="stylesheet" type="text/css" href="/view/tsne.css"/>
 </head>
 <body ng-controller="mainController">
 	<h1>Session Controls</h1>
@@ -17,6 +19,8 @@
 		<button class="btn btn-primary btn-sm" ng-click="show_embedding_section=!show_embedding_section">Embeddings</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_label_section=!show_label_section">Labels</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_snapshot_section=!show_snapshot_section">Snapshots</button>
+		<button ng-hide="show_tsne_section" class="btn btn-primary btn-sm" ng-click="show_tsne_section=!show_tsne_section">t-SNE</button>
+		<button ng-show="show_tsne_section" class="btn btn-primary btn-sm" ng-click="show_tsne_section=!show_tsne_section">Search</button>
 		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);new_group_name=''">Add</button>
 	</div>
 
@@ -135,7 +139,7 @@
 	</div>
 
 
-	<div>
+	<div ng-hide="show_tsne_section" >
 	<h1>Search Results</h1>
 		<div class="imageline" ng-show="similar_images.length == 0">
 			<div class="texty"><p>No Images</p></div>
@@ -158,5 +162,20 @@
 
 
 	</div>	
+
+	<div ng-show="show_tsne_section" class="label_area">
+	<h1>t-distributed Stochastic Neighbor Embedding</h1>
+		<div class="svg_border"><svg></svg></div>
+
+		<div class="label_area">
+		  	<div class="texty"><p>Add to label</p></div>
+			<span ng-repeat="(label,label_data) in label_list">
+				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
+			</span>
+			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button ng-show="new_label" class="btn btn-primary btn-sm label_button" ng-click="add_to_label(new_label);">Add</button>
+		</div>
+	</div>
+
+
 </body>
 </html>
