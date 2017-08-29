@@ -239,7 +239,6 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         return $scope.label_score(label) < 50 ? 'btn-danger' : $scope.label_score(label) < 200 ? 'btn-warning' : 'btn-success'
     }
 
-
     /***************************   TSNE CODE  BEGIN   ***********************************/
 
 
@@ -362,15 +361,15 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             });
         }
     })
-    .on( "mouseup", function() {
+    .on( "mouseup",  function() {
            // remove selection frame
         svg.selectAll( "rect.selection").remove();
 
             // remove temporary selection marker class
         d3.selectAll( 'g.state.selection').classed( "selection", false);
 
-        // print out the id's of all the selected images
-        d3.selectAll( 'g.state.selected').each( function(d) { console.log(d.id) } )
+        $scope.similar_images = [];
+        d3.selectAll( 'g.state.selected').each( function(d,count) { $scope.similar_images.push( {'state':1,'id':d.id } ) } )
     })
     .on( "mouseout", function() {
         try {
