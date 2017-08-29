@@ -222,16 +222,6 @@ class TSne:
     for index in range(size) :
       data.append( { 'x' : position[index,0] , 'y' : position[index,1] , 'id' : index } )
 
-    """
-    data = [
-        { 'x' : .43, 'y' : .67, 'id' : 53303 },
-        { 'x' : .140, 'y' : .150, 'id' : 2838 },
-        { 'x' : .200, 'y' : .250, 'id' : 43799 },
-        { 'x' : .300, 'y' : .120, 'id' : 43798 },
-        { 'x' : .50, 'y' : .250, 'id' : 43797 },
-        { 'x' : .90, 'y' : .170, 'id' : 43796 }
-    ]
-    """
     resp.body = json.dumps( { 'response' : data } )
 
 
