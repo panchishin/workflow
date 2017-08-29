@@ -14,15 +14,9 @@ rect.selection {
 }
 
 g.state image , g.state.selection.selected image {
-    opacity: 0.5 ;
+    -webkit-filter: brightness(50%); /* Safari 6.0 - 9.0 */
+    filter: brightness(50%);
 }
-
-
-
-g.state.selected image {
-    opacity: 1 ;
-}
-
 
 g.state rect {
     cursor  : pointer;

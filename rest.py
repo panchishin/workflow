@@ -9,7 +9,7 @@ from scipy import spatial
 import autoencode_model
 import embeddings
 import label_predict
-
+from sklearn.manifold import TSNE
 
 def get_mnist_data() :
   from tensorflow.examples.tutorials.mnist import input_data
@@ -212,6 +212,30 @@ class GroupPredict:
 
 
 
+class TSne:
+  def on_get(self, req, resp, size):
+    size = int(size)
+    position = TSNE(n_components=2).fit_transform(embeddings.getEmbeddings()[:size])
+    position = position - np.min( position , 0 )
+    position = position / np.max( position , 0 ) * .9 + .05
+    data = []
+    for index in range(size) :
+      data.append( { 'x' : position[index,0] , 'y' : position[index,1] , 'id' : index } )
+
+    """
+    data = [
+        { 'x' : .43, 'y' : .67, 'id' : 53303 },
+        { 'x' : .140, 'y' : .150, 'id' : 2838 },
+        { 'x' : .200, 'y' : .250, 'id' : 43799 },
+        { 'x' : .300, 'y' : .120, 'id' : 43798 },
+        { 'x' : .50, 'y' : .250, 'id' : 43797 },
+        { 'x' : .90, 'y' : .170, 'id' : 43796 }
+    ]
+    """
+    resp.body = json.dumps( { 'response' : data } )
+
+
+
 """
 ================================
 Add the endpoints to the service
@@ -227,5 +251,5 @@ api.add_route('/restore_session', RestoreSession())
 api.add_route('/similar/{index}', Similar())
 api.add_route('/blend/{a_value}/{b_value}/{amount}', BlendImage())
 api.add_route('/group_predict/{response_index}', GroupPredict())
-
+api.add_route('/tsne/{size}', TSne())
 
