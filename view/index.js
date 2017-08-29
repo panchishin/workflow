@@ -376,10 +376,12 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         });
     }
 
-    // get the TSne from the server
-    $http({method:"GET" , url : "/tsne/2000", cache: false}).then(function successCallback(result) {
-        $scope.tsne_creation( result.data.response )
-    })
+    $scope.get_tsne_batch = function() {
+        // get the TSne from the server
+        $http({method:"GET" , url : "/tsne/500", cache: false}).then(function successCallback(result) {
+            $scope.tsne_creation( result.data.response )
+        })
+    }
 
     /***************************   TSNE CODE  END   ***********************************/
 
