@@ -17,7 +17,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.isLabeled = 0;
     $scope.search_order = "forward";
     $scope.search_index = .5;
-    $scope.tsne_data = [];
+    $scope.scale_amount = 1.0;
 
     function retrieveSnapShot() {
         var snap_shots = localStorage.getItem("snap_shots");
@@ -242,10 +242,26 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     /***************************   TSNE CODE  BEGIN   ***********************************/
 
+    $scope.scale_tsne = function() {
+        $scope.scale_amount *= 1.2;
+        d3.select("div.svg_border svg").selectAll("g.state")
+            .attr({
+                "transform" : translate_tsne
+            })
+        ;
+    }
+
+    var svg_width = 800;
+    var svg_height = 500;
+    function translate_tsne(data) {
+        function scale(a,scale,size) {
+            return ( ( a-.5 ) * scale + .5 ) * size
+        }
+        return "translate("+ [ scale(data.x,$scope.scale_amount,svg_width),scale(data.y,$scope.scale_amount,svg_height)] + ")";
+    }
+
     $scope.tsne_creation = function(states) {
         var img_size = 16;
-        var svg_width = 800;
-        var svg_height = 500;
 
         d3.select("div.svg_border").select("svg").remove();
 
@@ -255,13 +271,10 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
         var gState = svg.selectAll("g.state").data( states ).enter().append( "g" )
             .attr({
-                "transform" : function(data) {
-                    return "translate("+ [data.x*svg_width,data.y*svg_height] + ")";
-                },
+                "transform" : translate_tsne,
                 'class'     : 'state' 
             })
         ;
-
 
         gState.append( "rect")
             .attr({
@@ -341,8 +354,8 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                     if( 
                         !d3.select( this).classed( "selected") && 
                             // inner rect inside selection frame
-                        state_data.x*svg_width>=selection_box.x && state_data.x*svg_width+img_size<=selection_box.x+selection_box.width && 
-                        state_data.y*svg_height>=selection_box.y && state_data.y*svg_height+img_size<=selection_box.y+selection_box.height
+                        scale(state_data.x,$scope.scale_amount,svg_width)>=selection_box.x && scale(state_data.x,$scope.scale_amount,svg_width)+img_size<=selection_box.x+selection_box.width && 
+                        scale(state_data.y,$scope.scale_amount,svg_height)>=selection_box.y && scale(state_data.y,$scope.scale_amount,svg_height)+img_size<=selection_box.y+selection_box.height
                     ) {
 
                         d3.select( this.parentNode)
@@ -376,28 +389,13 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     $scope.get_tsne_batch = function() {
         // get the TSne from the server
-        $http({method:"GET" , url : "/tsne/500", cache: false}).then(function successCallback(result) {
-            $scope.tsne_data = result.data.response
-            $scope.tsne_creation( $scope.tsne_data )
+        $scope.scale_amount = 1.0;
+        $http({method:"GET" , url : "/tsne/200", cache: false}).then(function successCallback(result) {
+            $scope.tsne_creation( result.data.response )
         })
     }
 
-    $scope.scale_tsne = function() {
 
-        var svg_width = 800;
-        var svg_height = 500;
-
-        var svg = d3.select("div.svg_border svg");
-
-        var gState = svg.selectAll("g.state")
-            .attr({
-                "transform" : function(data) {
-                    return "translate("+ [data.x*svg_width*2,data.y*svg_height*2] + ")";
-                } 
-            })
-        ;
-
-    }
 
     /***************************   TSNE CODE  END   ***********************************/
 
