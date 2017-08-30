@@ -17,6 +17,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.isLabeled = 0;
     $scope.search_order = "forward";
     $scope.search_index = .5;
+    $scope.tsne_data = [];
 
     function retrieveSnapShot() {
         var snap_shots = localStorage.getItem("snap_shots");
@@ -243,8 +244,8 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     $scope.tsne_creation = function(states) {
         var img_size = 16;
-        var svg_width = 1000;
-        var svg_height = 800;
+        var svg_width = 800;
+        var svg_height = 500;
 
         d3.select("div.svg_border").select("svg").remove();
 
@@ -252,13 +253,10 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         .attr("width", svg_width)
         .attr("height", svg_height);
 
-
-        var gStates = svg.selectAll("g.state").data( states );
-
-        var gState = gStates.enter().append( "g" )
+        var gState = svg.selectAll("g.state").data( states ).enter().append( "g" )
             .attr({
-                "transform" : function( d) {
-                    return "translate("+ [d.x*svg_width,d.y*svg_height] + ")";
+                "transform" : function(data) {
+                    return "translate("+ [data.x*svg_width,data.y*svg_height] + ")";
                 },
                 'class'     : 'state' 
             })
@@ -308,33 +306,33 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
             if( !s.empty()) {
                 var p = d3.mouse( this),
-                    d = {
+                    selection_box = {
                         x       : parseInt( s.attr( "x"), 10),
                         y       : parseInt( s.attr( "y"), 10),
                         width   : parseInt( s.attr( "width"), 10),
                         height  : parseInt( s.attr( "height"), 10)
                     },
                     move = {
-                        x : p[0] - d.x,
-                        y : p[1] - d.y
+                        x : p[0] - selection_box.x,
+                        y : p[1] - selection_box.y
                     }
                 ;
 
-                if( move.x < 1 || (move.x*2<d.width)) {
-                    d.x = p[0];
-                    d.width -= move.x;
+                if( move.x < 1 || (move.x*2<selection_box.width)) {
+                    selection_box.x = p[0];
+                    selection_box.width -= move.x;
                 } else {
-                    d.width = move.x;       
+                    selection_box.width = move.x;       
                 }
 
-                if( move.y < 1 || (move.y*2<d.height)) {
-                    d.y = p[1];
-                    d.height -= move.y;
+                if( move.y < 1 || (move.y*2<selection_box.height)) {
+                    selection_box.y = p[1];
+                    selection_box.height -= move.y;
                 } else {
-                    d.height = move.y;       
+                    selection_box.height = move.y;       
                 }
                
-                s.attr( d);
+                s.attr(selection_box);
 
                     // deselect all temporary selected state objects
                 d3.selectAll( 'g.state.selection.selected').classed( "selected", false);
@@ -343,8 +341,8 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                     if( 
                         !d3.select( this).classed( "selected") && 
                             // inner rect inside selection frame
-                        state_data.x*svg_width>=d.x && state_data.x*svg_width+img_size<=d.x+d.width && 
-                        state_data.y*svg_height>=d.y && state_data.y*svg_height+img_size<=d.y+d.height
+                        state_data.x*svg_width>=selection_box.x && state_data.x*svg_width+img_size<=selection_box.x+selection_box.width && 
+                        state_data.y*svg_height>=selection_box.y && state_data.y*svg_height+img_size<=selection_box.y+selection_box.height
                     ) {
 
                         d3.select( this.parentNode)
@@ -379,8 +377,26 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.get_tsne_batch = function() {
         // get the TSne from the server
         $http({method:"GET" , url : "/tsne/500", cache: false}).then(function successCallback(result) {
-            $scope.tsne_creation( result.data.response )
+            $scope.tsne_data = result.data.response
+            $scope.tsne_creation( $scope.tsne_data )
         })
+    }
+
+    $scope.scale_tsne = function() {
+
+        var svg_width = 800;
+        var svg_height = 500;
+
+        var svg = d3.select("div.svg_border svg");
+
+        var gState = svg.selectAll("g.state")
+            .attr({
+                "transform" : function(data) {
+                    return "translate("+ [data.x*svg_width*2,data.y*svg_height*2] + ")";
+                } 
+            })
+        ;
+
     }
 
     /***************************   TSNE CODE  END   ***********************************/
