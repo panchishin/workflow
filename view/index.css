@@ -60,5 +60,5 @@ img.mnist {
 }
 
 .not_selected {
-    opacity: .5;
+    opacity: .25;
 }
