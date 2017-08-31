@@ -151,11 +151,12 @@ class GroupPredict:
       total_f1 += f1
       print "%5d" % ( 100. * f1 ),
     print "AVG %5d" % ( 10. * total_f1 )
-    print "== Ground truth error %5.2f == error,signal,count : " % ( 100.* (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() ),
-    for confidence in [.5,.75,.9,.95,.99] :
-      conf_filter = np.max( result , 1 ) >= confidence
-      print "%5.2f %4.2f %5d ," % ( 100.* (np.argmax( mnist.train.labels[conf_filter,:] , 1 ) != np.argmax( result[conf_filter,:] , 1 ) ).mean(), confidence, conf_filter.sum() ),
-    print ""
+    print "== Ground truth error %5.2f == error,top_percent,count : " % ( 100.* (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() ),
+    for confidence in [1.,.99,.90,.75,.5,.25,.1,.01] :
+      conf_filter = np.argsort( np.max( result , 1 ) )[::-1]
+      conf_filter = conf_filter[ : int( conf_filter.shape[0] * confidence ) ]
+      print "%5.2f%s %4.2f %5d ," % ( 100.* (np.argmax( mnist.train.labels[conf_filter,:] , 1 ) != np.argmax( result[conf_filter,:] , 1 ) ).mean(), "%", confidence, conf_filter.shape[0] ),
+    print "\n"
 
   def on_post(self, req, resp, response_index):
     response_index = int(response_index)
