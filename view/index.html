@@ -11,59 +11,15 @@
 <body ng-controller="mainController">
 	<h1>Session Controls</h1>
 	<div class="session_controls">
-		<button ng-show="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Paused</button>
-		<button ng-hide="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Live</button>
-		<button class="btn btn-primary btn-sm label_button" ng-click="randomizeImage()">Random Images</button>
-
-		<button class="btn btn-primary btn-sm" ng-click="show_confidence_section=!show_confidence_section">Confidence</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_embedding_section=!show_embedding_section">Embeddings</button>
-		<button class="btn btn-primary btn-sm" ng-click="show_label_section=!show_label_section">Labels</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_snapshot_section=!show_snapshot_section">Snapshots</button>
+		<button class="btn btn-primary btn-sm" ng-click="search_order='forward';search_index=0.5;isLabeled=0;show_confidence_section=!show_confidence_section">Confidence</button>
+		<button class="btn btn-primary btn-sm" ng-click="show_label_section=!show_label_section">Labels</button>
 		<button ng-hide="show_tsne_section" class="btn btn-primary btn-sm" ng-click="show_tsne_section=!show_tsne_section">t-SNE</button>
 		<button ng-show="show_tsne_section" class="btn btn-primary btn-sm" ng-click="show_tsne_section=!show_tsne_section">Search</button>
 		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);new_group_name=''">Add</button>
 	</div>
 
-	<div ng-show="show_confidence_section">
-	<h1>Search Confidence</h1>
-		<div class="texty"><p>Confidence</p></div>
-		<button class="btn {{search_order=='forward'&&search_index==0?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='forward';search_index=0">High</button>
-		<button class="btn {{search_order=='forward'&&search_index==0.1?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='forward';search_index=0.1">90%</button>
-		<button class="btn {{search_order=='forward'&&search_index==0.25?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='forward';search_index=0.25">75%</button>
-		<button class="btn {{search_order=='forward'&&search_index==0.35?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='forward';search_index=0.35">65%</button>
-		<button class="btn {{search_order=='forward'&&search_index==0.5?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='forward';search_index=0.5">Med</button>
-		<button class="btn {{search_order=='reverse'&&search_index==0.35?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='reverse';search_index=0.35">35%</button>
-		<button class="btn {{search_order=='reverse'&&search_index==0.25?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='reverse';search_index=0.25">25%</button>
-		<button class="btn {{search_order=='reverse'&&search_index==0.1?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='reverse';search_index=0.1">10%</button>
-		<button class="btn {{search_order=='reverse'&&search_index==0?'btn-primary':''}} btn-sm label_button" 
-			ng-click="search_order='reverse';search_index=0">Low</button>
-		<div class="texty"><p>Mode</p></div>
-		<button class="btn {{isLabeled==0?'btn-primary':''}} btn-sm label_button" ng-click="isLabeled=0">Search</button>
-		<button class="btn {{isLabeled==1?'btn-primary':''}} btn-sm label_button" ng-click="isLabeled=1">Review</button>
-	</div>
-
-	<div ng-show="show_snapshot_section">
-	<h1>Snapshot Management</h1>
-		<div><div class="texty"><p>Create snapshot</p></div>
-			<input type="text" ng-model="snap_shot_name"><button ng-show="snap_shot_name" class="btn btn-primary btn-sm label_button" ng-click="create_snap_shot(snap_shot_name);snap_shot_name=''">Add</button>
-		</div>
-	        <div ng-hide="snapshot_delete_mode">
-	        	<div class="texty" ng-click="snapshot_delete_mode=!snapshot_delete_mode"><p>Use</p></div>
-	        	<button ng-repeat="item in list_snap_shots()" class="btn btn-primary btn-sm" ng-click="load_snap_shot(item)">{{item}}</button>
-		</div>
-	        <div ng-show="snapshot_delete_mode">
-	        	<div class="texty" ng-click="snapshot_delete_mode=!snapshot_delete_mode"><p>Remove</p></div>
-	        	<button ng-repeat="item in list_snap_shots()" class="btn btn-danger btn-sm" ng-click="remove_snap_shot(item)">{{item}}</button>
-		</div>
-	</div>
 
 	<div ng-show="show_embedding_section" class="find_related_images">
 	<h1>Image Embeddings</h1>
@@ -96,6 +52,49 @@
 	</div>
 
 
+	<div ng-show="show_snapshot_section">
+	<h1>Snapshot Management</h1>
+		<div><div class="texty"><p>Create snapshot</p></div>
+			<input type="text" ng-model="snap_shot_name"><button ng-show="snap_shot_name" class="btn btn-primary btn-sm label_button" ng-click="create_snap_shot(snap_shot_name);snap_shot_name=''">Add</button>
+		</div>
+	        <div ng-hide="snapshot_delete_mode">
+	        	<div class="texty" ng-click="snapshot_delete_mode=!snapshot_delete_mode"><p>Use</p></div>
+	        	<button ng-repeat="item in list_snap_shots()" class="btn btn-primary btn-sm" ng-click="load_snap_shot(item)">{{item}}</button>
+		</div>
+	        <div ng-show="snapshot_delete_mode">
+	        	<div class="texty" ng-click="snapshot_delete_mode=!snapshot_delete_mode"><p>Remove</p></div>
+	        	<button ng-repeat="item in list_snap_shots()" class="btn btn-danger btn-sm" ng-click="remove_snap_shot(item)">{{item}}</button>
+		</div>
+	</div>
+
+
+	<div ng-show="show_confidence_section">
+	<h1>Confidence</h1>
+		<div class="texty"><p>Confidence</p></div>
+		<button class="btn {{search_order=='forward'&&search_index==0?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='forward';search_index=0">High</button>
+		<button class="btn {{search_order=='forward'&&search_index==0.1?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='forward';search_index=0.1">90%</button>
+		<button class="btn {{search_order=='forward'&&search_index==0.25?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='forward';search_index=0.25">75%</button>
+		<button class="btn {{search_order=='forward'&&search_index==0.35?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='forward';search_index=0.35">65%</button>
+		<button class="btn {{search_order=='forward'&&search_index==0.5?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='forward';search_index=0.5">Med</button>
+		<button class="btn {{search_order=='reverse'&&search_index==0.35?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='reverse';search_index=0.35">35%</button>
+		<button class="btn {{search_order=='reverse'&&search_index==0.25?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='reverse';search_index=0.25">25%</button>
+		<button class="btn {{search_order=='reverse'&&search_index==0.1?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='reverse';search_index=0.1">10%</button>
+		<button class="btn {{search_order=='reverse'&&search_index==0?'btn-primary':''}} btn-sm label_button" 
+			ng-click="search_order='reverse';search_index=0">Low</button>
+		<div class="texty"><p>Mode</p></div>
+		<button class="btn {{isLabeled==0?'btn-primary':''}} btn-sm label_button" ng-click="isLabeled=0">Search</button>
+		<button class="btn {{isLabeled==1?'btn-primary':''}} btn-sm label_button" ng-click="isLabeled=1">Review</button>
+	</div>
+
+
 	<div ng-show="show_label_section" class="label_area">
 	<h1>Labels</h1>
 		<div ng-show="label_list == {}">
@@ -108,6 +107,8 @@
 				<p class="multiplier">x{{label_score(label)}}</p>
 			</span>
 	  	</span>
+	  	<button ng-show="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Paused</button>
+	  	<button ng-hide="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Live</button>
 	</div>
 
 
@@ -134,6 +135,8 @@
 
 				<div class="texty"><p>Locked</p></div>
 				<button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=false">Unlock</button>
+				<button ng-show="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Paused</button>
+			  	<button ng-hide="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Live</button>
 			</div>
 		</div>
 	</div>
@@ -150,6 +153,7 @@
 				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}/{{0}}" ng-click="data.state=1-data.state"></img>
 			</span>
 			<button class="btn btn-primary btn-sm label_button" ng-click="reverseSimilarImages()">Flip</button>
+			<button class="btn btn-primary btn-sm label_button" ng-click="randomizeImage()">Random</button>
 		</div>
 
 		<div class="label_area">
@@ -159,9 +163,8 @@
 			</span>
 			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button ng-show="new_label" class="btn btn-primary btn-sm label_button" ng-click="add_to_label(new_label);">Add</button>
 		</div>
-
-
 	</div>	
+
 
 	<div ng-show="show_tsne_section" class="label_area">
 	<h1>t-distributed Stochastic Neighbor Embedding</h1>
