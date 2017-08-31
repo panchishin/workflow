@@ -215,16 +215,22 @@ class GroupPredict:
 
 class TSne:
 
-  def __init__(self) :
+  def calculate_tsne(self):
     print "Starting the TSNE calculation ..."
-    self.max_size = 5000
+    self.max_size = 2500
     positions = TSNE(n_components=2).fit_transform(embeddings.getEmbeddings()[:self.max_size])
     positions = positions - np.min( positions , 0 )
     positions = positions / np.max( positions , 0 )
     self.positions = positions
     print "... finished the TSNE calculations."
 
+  def __init__(self) :
+    self.primed = False
+
   def on_get(self, req, resp, size):
+    if self.primed == False :
+      self.primed = True
+      self.calculate_tsne()
     size = min( int(size) , self.max_size)
     data = []
     for index in range(size) :
