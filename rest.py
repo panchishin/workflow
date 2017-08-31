@@ -215,17 +215,18 @@ class GroupPredict:
 class TSne:
 
   def __init__(self) :
+    print "Starting the TSNE calculation ..."
     self.max_size = 5000
     positions = TSNE(n_components=2).fit_transform(embeddings.getEmbeddings()[:self.max_size])
     positions = positions - np.min( positions , 0 )
     positions = positions / np.max( positions , 0 )
     self.positions = positions
+    print "... finished the TSNE calculations."
 
   def on_get(self, req, resp, size):
     size = min( int(size) , self.max_size)
     data = []
-    for x in range(size) :
-      index = random.randint(0,self.max_size)
+    for index in range(size) :
       data.append( { 'x' : self.positions[index,0] , 'y' : self.positions[index,1] , 'id' : index } )
 
     resp.body = json.dumps( { 'response' : data } )

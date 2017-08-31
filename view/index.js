@@ -17,7 +17,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.isLabeled = 0;
     $scope.search_order = "forward";
     $scope.search_index = .5;
-    $scope.scale_amount = 1.0;
+
 
     function retrieveSnapShot() {
         var snap_shots = localStorage.getItem("snap_shots");
@@ -242,8 +242,9 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     /***************************   TSNE CODE  BEGIN   ***********************************/
 
-    $scope.scale_tsne = function() {
-        $scope.scale_amount *= 1.2;
+    $scope.scale_tsne = function(amount) {
+        $scope.scale_amount_previous = $scope.scale_amount;
+        $scope.scale_amount = amount;
         d3.select("div.svg_border svg").selectAll("g.state")
             .attr({
                 "transform" : translate_tsne
@@ -251,13 +252,20 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         ;
     }
 
-    var svg_width = 800;
-    var svg_height = 500;
+    var svg_width = 1000;
+    var svg_height = 700;
+    $scope.zoom_center_x = 0.5;
+    $scope.zoom_center_y = 0.5;
+    $scope.scale_amount = 1.0;
+    $scope.scale_amount_previous = 1.0;
+    function scale_data_for_tsne(a,center,scale,size) {
+        return ( ( a - center ) * scale + center ) * size
+    }
     function translate_tsne(data) {
-        function scale(a,scale,size) {
-            return ( ( a-.5 ) * scale + .5 ) * size
-        }
-        return "translate("+ [ scale(data.x,$scope.scale_amount,svg_width),scale(data.y,$scope.scale_amount,svg_height)] + ")";
+        return "translate("+ [ 
+            scale_data_for_tsne(data.x,$scope.zoom_center_x,$scope.scale_amount,svg_width),
+            scale_data_for_tsne(data.y,$scope.zoom_center_y,$scope.scale_amount,svg_height)
+            ] + ")";
     }
 
     $scope.tsne_creation = function(states) {
@@ -265,9 +273,26 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
         d3.select("div.svg_border").select("svg").remove();
 
+
         var svg = d3.select("div.svg_border").append("svg")
         .attr("width", svg_width)
         .attr("height", svg_height);
+
+        
+        var zoom = d3.behavior.zoom()
+            .scaleExtent([1, 4])
+            .on("zoom", zoomed);
+
+        function zoomed() {
+          console.log(d3.event.sourceEvent.type)
+          if ( d3.event.sourceEvent.type == "wheel" ) {
+              $scope.zoom_center_x = d3.event.sourceEvent.layerX / svg_width * 1.2 - .1;
+              $scope.zoom_center_y = d3.event.sourceEvent.layerY / svg_height * 1.2 - .1;
+              $scope.scale_tsne(1.0 * d3.event.scale)
+            }
+        }
+
+        svg.call(zoom);
 
         var gState = svg.selectAll("g.state").data( states ).enter().append( "g" )
             .attr({
@@ -351,11 +376,12 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                 d3.selectAll( 'g.state.selection.selected').classed( "selected", false);
 
                 d3.selectAll( 'g.state >rect.inner').each( function( state_data, i) {
+                    var scaled_x = scale_data_for_tsne(state_data.x,$scope.zoom_center_x,$scope.scale_amount,svg_width);
+                    var scaled_y = scale_data_for_tsne(state_data.y,$scope.zoom_center_y,$scope.scale_amount,svg_height);
                     if( 
                         !d3.select( this).classed( "selected") && 
-                            // inner rect inside selection frame
-                        scale(state_data.x,$scope.scale_amount,svg_width)>=selection_box.x && scale(state_data.x,$scope.scale_amount,svg_width)+img_size<=selection_box.x+selection_box.width && 
-                        scale(state_data.y,$scope.scale_amount,svg_height)>=selection_box.y && scale(state_data.y,$scope.scale_amount,svg_height)+img_size<=selection_box.y+selection_box.height
+                        scaled_x>=selection_box.x && scaled_x+img_size<=selection_box.x+selection_box.width && 
+                        scaled_y>=selection_box.y && scaled_y+img_size<=selection_box.y+selection_box.height
                     ) {
 
                         d3.select( this.parentNode)
@@ -388,9 +414,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     $scope.get_tsne_batch = function() {
-        // get the TSne from the server
-        $scope.scale_amount = 1.0;
-        $http({method:"GET" , url : "/tsne/200", cache: false}).then(function successCallback(result) {
+        $http({method:"GET" , url : "/tsne/2000", cache: false}).then(function successCallback(result) {
             $scope.tsne_creation( result.data.response )
         })
     }
