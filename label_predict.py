@@ -11,13 +11,13 @@ def _getRandom(examples,embeddings) :
   return neg
 
 def _getScore(embeddings_in,category_in,model,sess) :
-  score = sess.run(model.correct,feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
-  return score
+  score,predicted_category = sess.run([model.correct,model.category_out],feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
+  return score,predicted_category
 
 def _doEpoch(embeddings_in,category_in,model,sess) :
-  score = _getScore(embeddings_in,category_in,model,sess)
+  score,predicted_category = _getScore(embeddings_in,category_in,model,sess)
   sess.run(        model.train,  feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:.5})
-  return score
+  return score,predicted_category
 
 def _meanExamples(examples) :
   return int(round( 1. * _totalExamples(examples) / len(examples) ))
@@ -73,14 +73,22 @@ def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=
 
         # training
         example_embeddings, example_category = _prepareDataForTraining(training_examples,embeddings,sample_size,has_unknown=has_unknown)
-        result_correct = _doEpoch( example_embeddings, example_category, model, sess )
+        result_correct,_ = _doEpoch( example_embeddings, example_category, model, sess )
 
         # test it!
         example_embeddings, example_category = _prepareDataForTraining(test_examples,embeddings,has_unknown=has_unknown,include_unknown=False)
-        test_correct = _getScore( example_embeddings, example_category, model, sess )
+        test_correct,predicted_category = _getScore( example_embeddings, example_category, model, sess )
+        example_category = np.array(example_category)
+        highest_signal = np.argsort( np.max(predicted_category,1) )[::-1]
+        highest_signal = highest_signal[:int(predicted_category.shape[0] * .50)]
+        test_error_50 = ( np.argmax(example_category[highest_signal,:],1) != np.argmax(predicted_category[highest_signal,:],1) ).mean()
+        highest_signal = highest_signal[:int(predicted_category.shape[0] * .25)]
+        test_error_25 = ( np.argmax(example_category[highest_signal,:],1) != np.argmax(predicted_category[highest_signal,:],1) ).mean()
+        highest_signal = highest_signal[:int(predicted_category.shape[0] * .10)]
+        test_error_10 = ( np.argmax(example_category[highest_signal,:],1) != np.argmax(predicted_category[highest_signal,:],1) ).mean()
 
         if epoch_count > 0 and epoch_count % 10 == 0 :
-          print ": %3d,%.3f,%.3f" % ( epoch_count, 1-result_correct, 1-test_correct ),
+          print ": %3d,%.3f,%.3f,%.3f,%.3f,%.3f" % ( epoch_count, 1-result_correct, 1-test_correct, test_error_50, test_error_25, test_error_10 ),
 
         best_correct = max( best_correct , test_correct )
 
@@ -91,7 +99,7 @@ def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=
           print "End > train fit ",
           break
 
-      print ": Final %3d,%.3f,%.3f" % ( epoch_count, 1-result_correct, 1-test_correct )
+      print ": Final %3d,%.3f,%.3f,%.3f,%.3f,%.3f" % ( epoch_count, 1-result_correct, 1-test_correct, test_error_50, test_error_25, test_error_10 )
       
       return model,sess.run(
         model.category_out,
