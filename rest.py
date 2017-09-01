@@ -173,10 +173,11 @@ class GroupPredict:
         self.previous_response_index = response_index
         self.previous_group_predict_page = 0
     else :
-      result = label_predict.predictiveMultiClassWeights(grouping,embeddings)
+      result,error = label_predict.predictiveMultiClassWeights(grouping,embeddings)
       self.previous_group_predict_result = result
       self.previous_group_predict_page = 0
       self.previous_group_predict_data_hash = hash( json.dumps(grouping) )
+      self.previous_error = error
       if (result.shape[1] == 10) :
         self.report(result)
 
@@ -209,7 +210,7 @@ class GroupPredict:
 
     positive = positive[self.previous_group_predict_page*10:][:10].tolist()
 
-    resp.body = json.dumps( { 'response' : { 'positive' : positive } } )
+    resp.body = json.dumps( { 'response' : { 'positive' : positive , 'error' : self.previous_error.tolist() } } )
 
 
 

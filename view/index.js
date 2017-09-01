@@ -12,6 +12,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         'prev' : 2
     };
     $scope.similar_images = [];
+    $scope.error_data = [];
     $scope.label_list = {};
     $scope.groups = {};
     $scope.isLabeled = 0;
@@ -163,6 +164,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
             for ( var index in result.data.response.negative ) {
                 $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
             }
+            $scope.error_data = result.data.response.error.map(function(b){ return b.map(function(c) { return (Math.round(c*1000)*.1).toFixed(1) }) })
         })
 
         $scope.new_label = label;
@@ -201,6 +203,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     $scope.group_predict = function(groupName,label) {
         $scope.currentGroup = groupName
+        $scope.similar_images = [];
         var data_list = [];
         var labels = Object.keys( $scope.groups[groupName]['labels_in'] )
         if ($scope.pause_training && $scope.previous_data_list) {
@@ -228,6 +231,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
                     $scope.similar_images.push( { 'id' : result.data.response.negative[index] , 'state' : 0 } );
                 }
             }
+            $scope.error_data = result.data.response.error.map(function(b){ return b.map(function(c) { return (Math.round(c*1000)*.1).toFixed(1) }) })
         })
         if ( label >= 0 ) {
           $scope.new_label = label;

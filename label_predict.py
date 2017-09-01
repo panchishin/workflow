@@ -11,13 +11,13 @@ def _getRandom(examples,embeddings) :
   return neg
 
 def _getScore(embeddings_in,category_in,model,sess) :
-  score,predicted_category = sess.run([model.correct,model.category_out],feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
-  return score,predicted_category
+  error,predicted_category = sess.run([model.error,model.category_out],feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:1.0})
+  return error,predicted_category
 
 def _doEpoch(embeddings_in,category_in,model,sess) :
-  score,predicted_category = _getScore(embeddings_in,category_in,model,sess)
+  error,predicted_category = _getScore(embeddings_in,category_in,model,sess)
   sess.run(        model.train,  feed_dict={model.emb_in:embeddings_in,model.category_in:category_in,model.dropout:.5})
-  return score,predicted_category
+  return error,predicted_category
 
 def _meanExamples(examples) :
   return int(round( 1. * _totalExamples(examples) / len(examples) ))
@@ -65,7 +65,7 @@ def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=
     model = label_model.model(number_of_classes=len(examples) + (1 if has_unknown else 0) )
     with tf.Session(graph=label_graph) as sess :
       sess.run( tf.global_variables_initializer() )
-      best_correct = 0
+      best_error = 1.0
       sample_size = _meanExamples(examples)
       total_examples = _totalExamples(examples)
       print "Training epoch,train,test ",
@@ -73,49 +73,55 @@ def _doTraining(examples,training_examples,test_examples,embeddings,has_unknown=
 
         # training
         example_embeddings, example_category = _prepareDataForTraining(training_examples,embeddings,sample_size,has_unknown=has_unknown)
-        result_correct,_ = _doEpoch( example_embeddings, example_category, model, sess )
+        result_error,_ = _doEpoch( example_embeddings, example_category, model, sess )
 
         # test it!
         example_embeddings, example_category = _prepareDataForTraining(test_examples,embeddings,has_unknown=has_unknown,include_unknown=False)
-        test_correct,predicted_category = _getScore( example_embeddings, example_category, model, sess )
-        example_category = np.array(example_category)
-        highest_signal = np.argsort( np.max(predicted_category,1) )[::-1]
-        highest_signal = highest_signal[:int(predicted_category.shape[0] * .50)]
-        test_error_50 = ( np.argmax(example_category[highest_signal,:],1) != np.argmax(predicted_category[highest_signal,:],1) ).mean()
-        highest_signal = highest_signal[:int(predicted_category.shape[0] * .25)]
-        test_error_25 = ( np.argmax(example_category[highest_signal,:],1) != np.argmax(predicted_category[highest_signal,:],1) ).mean()
-        highest_signal = highest_signal[:int(predicted_category.shape[0] * .10)]
-        test_error_10 = ( np.argmax(example_category[highest_signal,:],1) != np.argmax(predicted_category[highest_signal,:],1) ).mean()
+        test_error,predicted_category = _getScore( example_embeddings, example_category, model, sess )
+
 
         if epoch_count > 0 and epoch_count % 10 == 0 :
-          print ": %3d,%.3f,%.3f,%.3f,%.3f,%.3f" % ( epoch_count, 1-result_correct, 1-test_correct, test_error_50, test_error_25, test_error_10 ),
+          print ": %3d,%.3f,%.3f" % ( epoch_count, result_error, test_error ),
 
-        best_correct = max( best_correct , test_correct )
+        best_error = min( best_error , test_error )
 
-        if total_examples >= 20 and epoch_count >= 10 and ((1-test_correct) >= (1-best_correct) * 1.5) :
+        if total_examples >= 20 and epoch_count >= 10 and (test_error >= best_error * 1.5) :
           print "End > test error",
           break
-        if total_examples >= 20 and epoch_count >= 10 and 1-result_correct < 0.0001 :
+        if total_examples >= 20 and epoch_count >= 10 and result_error < 0.0001 :
           print "End > train fit ",
           break
 
-      print ": Final %3d,%.3f,%.3f,%.3f,%.3f,%.3f" % ( epoch_count, 1-result_correct, 1-test_correct, test_error_50, test_error_25, test_error_10 )
+      print ": Final %3d,%.3f,%.3f" % ( epoch_count, result_error, test_error )
       
+      example_category = np.array(example_category)
+      highest_signal = np.argsort( np.max(predicted_category,1) )[::-1]
+      fractions = [1.0]
+      test_errors = [test_error]
+      for fraction in [0.50,0.25,0.10,0.05,0.02,0.01] :
+        number = int( predicted_category.shape[0] * fraction )
+        if number >= 100 :
+          fractions.append( fraction )
+          highest_signal = highest_signal[:number]
+          errors =  ( np.argmax(example_category[highest_signal,:],1) != np.argmax(predicted_category[highest_signal,:],1) ).mean()
+          errors = max( 1.0 / number , errors )
+          test_errors.append( errors )
+
       return model,sess.run(
         model.category_out,
         feed_dict={
           model.emb_in:embeddings.getEmbeddings(),
           model.dropout:1.0
           }
-        )
+        ),np.array( zip(fractions,test_errors) )
 
 
 def predictiveMultiClassWeights(examples,embeddings) :
   has_unknown = True if len(examples) < 3 else False
 
   subset_A , subset_B = _splitTrainingAndTest(examples)
-  model,weights_A = _doTraining(examples,subset_A,subset_B,embeddings,has_unknown)
-  model,weights_B = _doTraining(examples,subset_B,subset_A,embeddings,has_unknown)
+  model,weights_A,error_A = _doTraining(examples,subset_A,subset_B,embeddings,has_unknown)
+  model,weights_B,error_B = _doTraining(examples,subset_B,subset_A,embeddings,has_unknown)
   weights = ( weights_A + weights_B ) / 2.
-
-  return weights
+  error = ( error_A + error_B ) / 2
+  return weights,error

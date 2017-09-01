@@ -11,6 +11,8 @@
 <body ng-controller="mainController">
 	<h1>Session Controls</h1>
 	<div class="session_controls">
+		<button ng-show="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Paused</button>
+	  	<button ng-hide="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Live</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_embedding_section=!show_embedding_section">Embeddings</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_snapshot_section=!show_snapshot_section">Snapshots</button>
 		<button class="btn btn-primary btn-sm" ng-click="search_order='forward';search_index=0.5;isLabeled=0;show_confidence_section=!show_confidence_section">Confidence</button>
@@ -135,8 +137,6 @@
 
 				<div class="texty"><p>Locked</p></div>
 				<button class="btn btn-primary btn-sm label_button" ng-click="group_data.locked=false">Unlock</button>
-				<button ng-show="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Paused</button>
-			  	<button ng-hide="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Live</button>
 			</div>
 		</div>
 	</div>
@@ -162,6 +162,13 @@
 				<button class="btn {{button_confidence(label)}} btn-sm label_button" ng-click="add_to_label(label)">{{label}}</button>
 			</span>
 			<p class="inline">or new label </p><input type="text" ng-model="new_label"><button ng-show="new_label" class="btn btn-primary btn-sm label_button" ng-click="add_to_label(new_label);">Add</button>
+		</div>
+
+		<div class="label_area" ng-repeat="row in error_data">
+			<div class="texty"><p></p></div>
+			<span>
+				Top {{row[0]}}% has {{row[1]}}% error 
+			</span>
 		</div>
 	</div>	
 

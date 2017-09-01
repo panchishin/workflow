@@ -25,6 +25,5 @@ class model:
     self.loss = tf.reduce_mean( tf.nn.softmax_cross_entropy_with_logits( labels=self.category_in, logits=self.layer1) )
     self.train = tf.train.AdamOptimizer(training_factor).minimize(self.loss)
     
-    self.correct = tf.reduce_mean( tf.cast( tf.equal( tf.argmax( self.category_in , 1 ) , tf.argmax( self.layer1 , 1 ) ) , dtype=tf.float32 ) )
-    
+    self.error  = 1.0 - tf.reduce_mean( tf.cast( tf.equal( tf.argmax( self.category_in , 1 ) , tf.argmax( self.layer1 , 1 ) ) , dtype=tf.float32 ) )
     
