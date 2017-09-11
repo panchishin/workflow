@@ -30,6 +30,6 @@ for label,data_index in result :
 print "Pretend labeling the first",len(nearest)," ..."
 
 
-result = label_predict.predictiveMultiClassWeights( [ nearest,negative_examples] ,embeddings)
+result = label_predict.predictiveMultiClassWeights( [ nearest,negative_examples] ,embeddings)[0]
 for item in zip( np.argmax(mnist.test.labels[:20,:],1), result[:20] ) :
   print item[0], ["is a '4'","not","something else"][ np.argmax(item[1]) ]
