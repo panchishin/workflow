@@ -33,7 +33,7 @@ def restoreSession() :
 
 def doEpochOfTraining( loss, train, data_feed, batches=55000/100, batch_size=100, rate=LEARNING_RATE ) :
   for index in range(1,batches+1) :
-    result,_ = sess.run( [loss,train], feed_dict={autoencode_model.x0:data_feed.next_batch(batch_size)[0],autoencode_model.learning_rate:rate})
+    result,_ = sess.run( [loss,train], feed_dict={autoencode_model.x_in:data_feed.nextBatch(batch_size),autoencode_model.learning_rate:rate})
     if index == 1 or index == batches :
         print "index :",index,", loss:", result
 

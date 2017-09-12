@@ -6,12 +6,9 @@ SIZE = 32
 HIGH_LOW_NOISE = 0.02
 
 
-x0 = tf.placeholder(tf.float32, [None, 28*28] , name="x0")
+x_in = tf.placeholder(tf.float32, [None, SIZE, SIZE, 1] , name="x0")
 learning_rate = tf.placeholder( tf.float32 )
 
-x_reshape = tf.reshape( x0, [-1,28,28,1], name="x_in" )
-x_enlarge = tf.image.resize_images( x_reshape, [SIZE,SIZE], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR, align_corners=False )
-x_in = x_enlarge
 x_noisy = layer.high_low_noise( x_in , HIGH_LOW_NOISE)
 
 

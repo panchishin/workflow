@@ -11,19 +11,17 @@ import embeddings
 import label_predict
 from sklearn.manifold import TSNE
 
-def get_mnist_data() :
-  from tensorflow.examples.tutorials.mnist import input_data
-  return input_data.read_data_sets('./cache', one_hot=True)
+from data_source import BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
+imageData = BatchWrapper( ResizeWrapper( ReshapeWrapper( Mnist(), [28,28,1] ) , [32,32] ) )
 
-mnist = get_mnist_data()
-embeddings.data_set = mnist.train.images
+embeddings.data_set = imageData.getImages()
 
 
 def getImageWithIndex(index) :
-  return mnist.train.images[index:index+1]
+  return imageData.getImages()[index:index+1]
 
 def getExample(index,layer) :
-  return session.sess.run(layer,feed_dict={autoencode_model.x0:getImageWithIndex(index)} ).reshape([autoencode_model.SIZE,autoencode_model.SIZE])
+  return session.sess.run(layer,feed_dict={autoencode_model.x_in:getImageWithIndex(index)} ).reshape([autoencode_model.SIZE,autoencode_model.SIZE])
 
 def arrayToImage(data) :
   import scipy.misc
@@ -68,21 +66,21 @@ class LayerImage:
         getExample(int(index),ml_layer) , 
         resp 
         )
-    except :
-      pass
+    except Exception as e:
+      print(e)
 
 
 class BlendImage:
   def on_get(self, req, resp, a_value, b_value, amount) :
     try :
       amount = int(amount) / 100.0
-      a_embed = session.sess.run(autoencode_model.conv5e,feed_dict={autoencode_model.x0:getImageWithIndex(int(a_value))} )
-      b_embed = session.sess.run(autoencode_model.conv5e,feed_dict={autoencode_model.x0:getImageWithIndex(int(b_value))} )
+      a_embed = session.sess.run(autoencode_model.conv5e,feed_dict={autoencode_model.x_in:getImageWithIndex(int(a_value))} )
+      b_embed = session.sess.run(autoencode_model.conv5e,feed_dict={autoencode_model.x_in:getImageWithIndex(int(b_value))} )
       blend_embed = a_embed * amount + b_embed * ( 1 - amount )
-      output = session.sess.run(autoencode_model.x_out_5,feed_dict={autoencode_model.conv5e:blend_embed,autoencode_model.x0:getImageWithIndex(int(a_value))} )
+      output = session.sess.run(autoencode_model.x_out_5,feed_dict={autoencode_model.conv5e:blend_embed,autoencode_model.x_in:getImageWithIndex(int(a_value))} )
       falconRespondArrayAsImage( output.reshape([autoencode_model.SIZE,autoencode_model.SIZE]) , resp )
-    except :
-      pass
+    except Exception as e:
+      print(e)
 
 
 class DoLearning:
@@ -91,7 +89,7 @@ class DoLearning:
     session.doEpochOfTraining(
       [autoencode_model.loss_1,autoencode_model.loss_2,autoencode_model.loss_3,autoencode_model.loss_4,autoencode_model.loss_5,autoencode_model.loss_6][int(index)],
       [autoencode_model.train_1,autoencode_model.train_2,autoencode_model.train_3,autoencode_model.train_4,autoencode_model.train_5,autoencode_model.train_6][int(index)],
-      mnist.train)
+      imageData)
     embeddings.reset()
     resp.body = json.dumps( { 'response': 'done'} )
 
@@ -143,7 +141,7 @@ class GroupPredict:
 
     print "  F1  :",
     total_f1 = 0.
-    ground = np.argmax( mnist.train.labels , 1 )
+    ground = np.argmax( imageData.getLabels() , 1 )
     for a in range(10) :
       precision = 1. * (( ground == a ) * ( predict == a )).sum() / ( predict == a ).sum()
       recall = 1. * (( ground == a ) * ( predict == a )).sum() / ( ground == a ).sum()
@@ -151,11 +149,11 @@ class GroupPredict:
       total_f1 += f1
       print "%5d" % ( 100. * f1 ),
     print "AVG %5d" % ( 10. * total_f1 )
-    print "== Ground truth error %5.2f == error,top_percent,count : " % ( 100.* (np.argmax( mnist.train.labels , 1 ) != np.argmax( result , 1 ) ).mean() ),
+    print "== Ground truth error %5.2f == error,top_percent,count : " % ( 100.* (np.argmax( imageData.getLabels() , 1 ) != np.argmax( result , 1 ) ).mean() ),
     for confidence in [1.,.99,.90,.75,.5,.25,.1,.01] :
       conf_filter = np.argsort( np.max( result , 1 ) )[::-1]
       conf_filter = conf_filter[ : int( conf_filter.shape[0] * confidence ) ]
-      print "%5.2f%s %4.2f %5d ," % ( 100.* (np.argmax( mnist.train.labels[conf_filter,:] , 1 ) != np.argmax( result[conf_filter,:] , 1 ) ).mean(), "%", confidence, conf_filter.shape[0] ),
+      print "%5.2f%s %4.2f %5d ," % ( 100.* (np.argmax( imageData.getLabels()[conf_filter,:] , 1 ) != np.argmax( result[conf_filter,:] , 1 ) ).mean(), "%", confidence, conf_filter.shape[0] ),
     print "\n"
 
   def on_post(self, req, resp, response_index):

@@ -4,20 +4,18 @@ import numpy as np
 import embeddings
 import label_predict
 
-def get_mnist_data() :
-  from tensorflow.examples.tutorials.mnist import input_data
-  return input_data.read_data_sets('./cache', one_hot=True)
+from data_source import BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
+imageData = ResizeWrapper( ReshapeWrapper( Mnist(False), [28,28,1] ) , [32,32] )
 
-mnist = get_mnist_data()
-embeddings.data_set = mnist.test.images
+embeddings.data_set = imageData.getImages()
 
 number = 4
 
-print "The number is",np.argmax( mnist.test.labels[ [number] ] , 1 )
+print "The number is",np.argmax( imageData.getLabels()[ [number] ] , 1 )
 print "And its index is",number
 
 nearest = embeddings.nearestNeighbourByIndex(number,200)
-result = zip( mnist.test.labels[ nearest ] , nearest )
+result = zip( imageData.getLabels()[ nearest ] , nearest )
 nearest = []
 negative_examples = []
 for label,data_index in result :
@@ -31,5 +29,5 @@ print "Pretend labeling the first",len(nearest)," ..."
 
 
 result = label_predict.predictiveMultiClassWeights( [ nearest,negative_examples] ,embeddings)[0]
-for item in zip( np.argmax(mnist.test.labels[:20,:],1), result[:20] ) :
+for item in zip( np.argmax(imageData.getLabels()[:20,:],1), result[:20] ) :
   print item[0], ["is a '4'","not","something else"][ np.argmax(item[1]) ]
