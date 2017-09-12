@@ -2,6 +2,7 @@ import autoencode_model
 import session
 
 session.restoreSession()
+autoencode_model = session.autoencode_model
 
 from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
 data = LazyLoadWrapper( BatchWrapper( ResizeWrapper( ReshapeWrapper( Mnist(), [28,28,1] ) , [32,32] ) ) )

@@ -1,7 +1,7 @@
 import numpy as np
 import random
-import autoencode_model
 import session
+autoencode_model = session.autoencode_model
 from scipy import spatial
 
 data_set = []

@@ -6,7 +6,7 @@ import json
 import random
 import numpy as np
 from scipy import spatial
-import autoencode_model
+autoencode_model = session.autoencode_model
 import embeddings
 import label_predict
 from sklearn.manifold import TSNE

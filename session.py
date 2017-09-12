@@ -1,5 +1,6 @@
 import tensorflow as tf
-import autoencode_model
+from autoencode_model import Model
+autoencode_model = Model()
 
 LEARNING_RATE = 1e-3
 
