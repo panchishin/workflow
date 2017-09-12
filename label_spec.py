@@ -1,8 +1,9 @@
 import session
 session.restoreSession()
 import numpy as np
-import embeddings
 import label_predict
+from embeddings import Embeddings
+embeddings = Embeddings()
 
 from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
 imageData = LazyLoadWrapper( ResizeWrapper( ReshapeWrapper( Mnist(False), [28,28,1] ) , [32,32] ) )

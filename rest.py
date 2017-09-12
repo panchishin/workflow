@@ -7,7 +7,8 @@ import random
 import numpy as np
 from scipy import spatial
 autoencode_model = session.autoencode_model
-import embeddings
+from embeddings import Embeddings
+embeddings = Embeddings()
 import label_predict
 from sklearn.manifold import TSNE
 
