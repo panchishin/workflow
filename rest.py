@@ -11,8 +11,8 @@ import embeddings
 import label_predict
 from sklearn.manifold import TSNE
 
-from data_source import BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
-imageData = BatchWrapper( ResizeWrapper( ReshapeWrapper( Mnist(), [28,28,1] ) , [32,32] ) )
+from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
+imageData = LazyLoadWrapper( BatchWrapper( ResizeWrapper( ReshapeWrapper( Mnist(), [28,28,1] ) , [32,32] ) ) )
 
 embeddings.data_set = imageData.getImages()
 

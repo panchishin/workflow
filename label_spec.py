@@ -4,8 +4,8 @@ import numpy as np
 import embeddings
 import label_predict
 
-from data_source import BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
-imageData = ResizeWrapper( ReshapeWrapper( Mnist(False), [28,28,1] ) , [32,32] )
+from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
+imageData = LazyLoadWrapper( ResizeWrapper( ReshapeWrapper( Mnist(False), [28,28,1] ) , [32,32] ) )
 
 embeddings.data_set = imageData.getImages()
 

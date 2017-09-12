@@ -4,7 +4,10 @@ import numpy as np
 class Mnist:
 
   def __init__(self,training=True):
-    self.get_mnist_data(training)
+    self.training = training
+
+  def init(self) :
+    self.get_mnist_data(self.training)
 
   def get_mnist_data(self,training) :
     from tensorflow.examples.tutorials.mnist import input_data
@@ -22,7 +25,14 @@ class Mnist:
 class ReshapeWrapper:
 
   def __init__(self, source, target_shape):
-    self.set(source, target_shape)
+    self.source = source
+    self.target_shape = target_shape
+
+  def init(self) :
+    self.source.init()
+    self.set(self.source, self.target_shape)
+    del self.source
+    del self.target_shape
 
   def set(self, source, target_shape) :
     self.images = source.getImages().reshape( [source.getImages().shape[0]] + target_shape )
@@ -38,7 +48,14 @@ class ReshapeWrapper:
 class ResizeWrapper:
 
   def __init__(self, source, target_size):
-    self.resize(source, target_size)
+    self.source = source
+    self.target_size = target_size
+
+  def init(self) :
+    self.source.init()
+    self.resize(self.source, self.target_size)
+    del self.source
+    del self.target_size
 
   def resize(self, source, target_size) :
     self.labels = source.getLabels()
@@ -60,6 +77,9 @@ class BatchWrapper:
 
   def __init__(self, source):
     self.source = source
+
+  def init(self) :
+    self.source.init()
     self.shuffle()
 
   def shuffle(self):
@@ -81,29 +101,52 @@ class BatchWrapper:
     return self.source.getLabels()
 
 
+class LazyLoadWrapper:
+
+  def __init__(self, source):
+    self.source = source
+    self.uninitialized = True
+
+  def init(self) :
+    if self.uninitialized :
+      self.source.init()
+      self.uninitialized = False
+
+  def nextBatch(self,size):
+    self.init()
+    return self.source.nextBatch(size)
+
+  def getImages(self) :
+    self.init()
+    return self.source.getImages()
+
+  def getLabels(self):
+    self.init()
+    return self.source.getLabels()
 
 
 if __name__ == '__main__' :
   print "RUNNING TESTS"
-  mnist = Mnist()
+  mnist = LazyLoadWrapper( Mnist() )
   if mnist.getImages().shape == tuple([55000,28*28]) :
     print ".",
   else :
     print "FAIL", mnist.getImages().shape, "should equal [55000,28*28]"
 
-  reshaped = ReshapeWrapper( mnist , [28,28,1] )
+  reshaped = LazyLoadWrapper( ReshapeWrapper( mnist , [28,28,1] ) )
   if reshaped.getImages().shape == tuple([55000,28,28,1]) :
     print ".",
   else :
     print "FAIL", reshaped.getImages().shape, "should equal [55000,28,28,1]"
 
-  resized = ResizeWrapper( reshaped, [32,32] )
+  resized = LazyLoadWrapper( ResizeWrapper( reshaped, [32,32] ) )
   if resized.getImages().shape == tuple([55000,32,32,1]) :
     print ".",
   else :
     print "FAIL", resized.getImages().shape, "should equal [55000,32,32,1]"
 
   batch = BatchWrapper( resized )
+  batch.init()
   if batch.nextBatch(10).shape == tuple([10,32,32,1]) :
     print ".",
   else :
