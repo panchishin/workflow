@@ -41,7 +41,7 @@ def autoencode(input,target,depth,reuse=True) :
   return result,loss,embedding
 
 
-x_out_5,loss_5,conv5e = autoencode(x_noisy,x_in,5,False)
+x_out_5,loss_5,embedding = autoencode(x_noisy,x_in,5,False)
 x_out_4,loss_4,_ = autoencode(x_noisy,x_in,4)
 x_out_3,loss_3,_ = autoencode(x_noisy,x_in,3)
 x_out_2,loss_2,_ = autoencode(x_noisy,x_in,2)

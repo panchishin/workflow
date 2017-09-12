@@ -13,7 +13,7 @@ def reset() :
 
 def update() :
     global all_embeddings
-    all_embeddings = session.sess.run(autoencode_model.conv5e,feed_dict={autoencode_model.x_in:data_set} ).reshape([-1,autoencode_model.SIZE])
+    all_embeddings = session.sess.run(autoencode_model.embedding,feed_dict={autoencode_model.x_in:data_set} ).reshape([-1,autoencode_model.SIZE])
 
 def getEmbeddings() :
     global all_embeddings

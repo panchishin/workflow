@@ -74,10 +74,10 @@ class BlendImage:
   def on_get(self, req, resp, a_value, b_value, amount) :
     try :
       amount = int(amount) / 100.0
-      a_embed = session.sess.run(autoencode_model.conv5e,feed_dict={autoencode_model.x_in:getImageWithIndex(int(a_value))} )
-      b_embed = session.sess.run(autoencode_model.conv5e,feed_dict={autoencode_model.x_in:getImageWithIndex(int(b_value))} )
+      a_embed = session.sess.run(autoencode_model.embedding,feed_dict={autoencode_model.x_in:getImageWithIndex(int(a_value))} )
+      b_embed = session.sess.run(autoencode_model.embedding,feed_dict={autoencode_model.x_in:getImageWithIndex(int(b_value))} )
       blend_embed = a_embed * amount + b_embed * ( 1 - amount )
-      output = session.sess.run(autoencode_model.x_out_5,feed_dict={autoencode_model.conv5e:blend_embed,autoencode_model.x_in:getImageWithIndex(int(a_value))} )
+      output = session.sess.run(autoencode_model.x_out_5,feed_dict={autoencode_model.embedding:blend_embed,autoencode_model.x_in:getImageWithIndex(int(a_value))} )
       falconRespondArrayAsImage( output.reshape([autoencode_model.SIZE,autoencode_model.SIZE]) , resp )
     except Exception as e:
       print(e)
