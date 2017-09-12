@@ -19,7 +19,7 @@ class Mnist:
     return self.labels
 
 
-class Reshape:
+class ReshapeWrapper:
 
   def __init__(self, source, target_shape):
     self.set(source, target_shape)
@@ -35,7 +35,7 @@ class Reshape:
     return self.labels
 
 
-class Resize:
+class ResizeWrapper:
 
   def __init__(self, source, target_size):
     self.resize(source, target_size)
@@ -67,7 +67,7 @@ class BatchWrapper:
     np.random.shuffle(self.index)
     self.offset = 0
 
-  def getBatch(self,size):
+  def nextBatch(self,size):
     if self.offset + size > self.source.getImages().shape[0] :
       self.shuffle()
     result = self.source.getImages()[ self.index[ self.offset:self.offset+size] ]
@@ -91,20 +91,20 @@ if __name__ == '__main__' :
   else :
     print "FAIL", mnist.getImages().shape, "should equal [55000,28*28]"
 
-  reshaped = Reshape( mnist , [28,28,1] )
+  reshaped = ReshapeWrapper( mnist , [28,28,1] )
   if reshaped.getImages().shape == tuple([55000,28,28,1]) :
     print ".",
   else :
     print "FAIL", reshaped.getImages().shape, "should equal [55000,28,28,1]"
 
-  resized = Resize( reshaped, [32,32] )
+  resized = ResizeWrapper( reshaped, [32,32] )
   if resized.getImages().shape == tuple([55000,32,32,1]) :
     print ".",
   else :
     print "FAIL", resized.getImages().shape, "should equal [55000,32,32,1]"
 
   batch = BatchWrapper( resized )
-  if batch.getBatch(10).shape == tuple([10,32,32,1]) :
+  if batch.nextBatch(10).shape == tuple([10,32,32,1]) :
     print ".",
   else :
     print "FAIL", resized.getImages().shape, "should equal [10,32,32,1]"
