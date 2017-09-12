@@ -4,9 +4,10 @@ import layer
 
 SIZE = 32
 HIGH_LOW_NOISE = 0.02
+COLOR_DEPTH = 1
 
 
-x_in = tf.placeholder(tf.float32, [None, SIZE, SIZE, 1] , name="x0")
+x_in = tf.placeholder(tf.float32, [None, SIZE, SIZE, COLOR_DEPTH] , name="x0")
 learning_rate = tf.placeholder( tf.float32 )
 
 x_noisy = layer.high_low_noise( x_in , HIGH_LOW_NOISE)
@@ -31,10 +32,10 @@ def decode( image, layers_in, layers_out=0, width=3, reuse=True ) :
 def autoencode(input,target,depth,reuse=True) :
   autoencoding_layer = [input]
   for index in range(depth) :
-    autoencoding_layer.append( encode( autoencoding_layer[-1] , 2**index , reuse=reuse) )
+    autoencoding_layer.append( encode( autoencoding_layer[-1] , COLOR_DEPTH*2**index , reuse=reuse) )
   embedding = autoencoding_layer[-1]
   for index in range(depth,0,-1) :
-    autoencoding_layer.append( decode( autoencoding_layer[-1] , 2**index , reuse=reuse) )
+    autoencoding_layer.append( decode( autoencoding_layer[-1] , COLOR_DEPTH*2**index , reuse=reuse) )
   result = autoencoding_layer[-1]
   loss = tf.log( tf.reduce_mean( target * tf.square( target - result ) ) + tf.reduce_mean( (1-target) * tf.square( target - result ) ) )
   return result,loss,embedding
