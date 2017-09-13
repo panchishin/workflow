@@ -1,14 +1,14 @@
-import session
-session.restore()
+import autoencode_predict
+autoencode_predict.restore()
 import falcon
 import os.path  # for serving html files
 import json
 import random
 import numpy as np
 from scipy import spatial
-autoencode_model = session.autoencode_model
+autoencode_model = autoencode_predict.autoencode_model
 from embeddings import Embeddings
-embeddings = Embeddings()
+embeddings = Embeddings(autoencode_predict,autoencode_model)
 import nearest_neighbour
 import label_predict
 from sklearn.manifold import TSNE
@@ -23,7 +23,7 @@ def getImageWithIndex(index) :
   return imageData.getImages()[index:index+1]
 
 def getExample(index,layer) :
-  return session.sess.run(layer,feed_dict={autoencode_model.x_in:getImageWithIndex(index)} ).reshape([autoencode_model.SIZE,autoencode_model.SIZE])
+  return autoencode_predict.sess.run(layer,feed_dict={autoencode_model.x_in:getImageWithIndex(index)} ).reshape([autoencode_model.SIZE,autoencode_model.SIZE])
 
 def arrayToImage(data) :
   import scipy.misc
@@ -76,10 +76,10 @@ class BlendImage:
   def on_get(self, req, resp, a_value, b_value, amount) :
     try :
       amount = int(amount) / 100.0
-      a_embed = session.sess.run(autoencode_model.embedding,feed_dict={autoencode_model.x_in:getImageWithIndex(int(a_value))} )
-      b_embed = session.sess.run(autoencode_model.embedding,feed_dict={autoencode_model.x_in:getImageWithIndex(int(b_value))} )
+      a_embed = autoencode_predict.sess.run(autoencode_model.embedding,feed_dict={autoencode_model.x_in:getImageWithIndex(int(a_value))} )
+      b_embed = autoencode_predict.sess.run(autoencode_model.embedding,feed_dict={autoencode_model.x_in:getImageWithIndex(int(b_value))} )
       blend_embed = a_embed * amount + b_embed * ( 1 - amount )
-      output = session.sess.run(autoencode_model.x_out_5,feed_dict={autoencode_model.embedding:blend_embed,autoencode_model.x_in:getImageWithIndex(int(a_value))} )
+      output = autoencode_predict.sess.run(autoencode_model.x_out_5,feed_dict={autoencode_model.embedding:blend_embed,autoencode_model.x_in:getImageWithIndex(int(a_value))} )
       falconRespondArrayAsImage( output.reshape([autoencode_model.SIZE,autoencode_model.SIZE]) , resp )
     except Exception as e:
       print(e)
@@ -88,7 +88,7 @@ class BlendImage:
 class DoLearning:
   def on_get(self, req, resp, index) :
     print "TRAINING WITH",index
-    session.doEpochOfTraining(
+    autoencode_predict.doEpochOfTraining(
       [autoencode_model.loss_1,autoencode_model.loss_2,autoencode_model.loss_3,autoencode_model.loss_4,autoencode_model.loss_5,autoencode_model.loss_6][int(index)],
       [autoencode_model.train_1,autoencode_model.train_2,autoencode_model.train_3,autoencode_model.train_4,autoencode_model.train_5,autoencode_model.train_6][int(index)],
       imageData)
@@ -97,18 +97,18 @@ class DoLearning:
 
 class ResetSession:
   def on_get(self, req, resp) :
-    session.reset();
+    autoencode_predict.reset();
     embeddings.reset()
     resp.body = json.dumps( { 'response': 'done'} )
 
 class RestoreSession:
   def on_get(self, req, resp) :
-    session.restore();
+    autoencode_predict.restore();
     resp.body = json.dumps( { 'response': 'done'} )
 
 class SaveSession:
   def on_get(self, req, resp) :
-    session.save();
+    autoencode_predict.save();
     resp.body = json.dumps( { 'response': 'done'} )
 
 

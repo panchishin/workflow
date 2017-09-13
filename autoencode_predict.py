@@ -31,7 +31,6 @@ def restore() :
     reset()
   print "... done."
 
-
 def doEpochOfTraining( loss, train, data_feed, batches=0, batch_size=100, rate=LEARNING_RATE ) :
   batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size
   for index in range(1,batches+1) :

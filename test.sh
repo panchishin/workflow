@@ -1,6 +1,6 @@
 echo ========================
-echo python autoencode_model_spec.py
-python autoencode_model_spec.py
+echo python autoencode_spec.py
+python autoencode_spec.py
 
 echo ========================
 echo git checkout meta-data
