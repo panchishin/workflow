@@ -1,5 +1,3 @@
-import numpy as np
-
 
 class Mnist:
 
@@ -83,6 +81,7 @@ class BatchWrapper:
     self.shuffle()
 
   def shuffle(self):
+    import numpy as np
     self.index = range(self.source.getImages().shape[0])
     np.random.shuffle(self.index)
     self.offset = 0
