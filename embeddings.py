@@ -1,7 +1,3 @@
-import numpy as np
-import random
-from scipy import spatial
-import nearest_neighbour
 
 class Embeddings:
   def __init__(self, session=None, model=None, max_search_size=2000) :
