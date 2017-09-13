@@ -9,6 +9,7 @@ from scipy import spatial
 autoencode_model = session.autoencode_model
 from embeddings import Embeddings
 embeddings = Embeddings()
+import nearest_neighbour
 import label_predict
 from sklearn.manifold import TSNE
 
@@ -113,7 +114,7 @@ class SaveSession:
 
 class Similar:
   def on_get(self, req, resp, index):
-    names = embeddings.nearestNeighbourByIndex( int(index) ).tolist()
+    names = nearest_neighbour.byIndex(int(index), embeddings.getEmbeddings()).tolist()
     resp.body = json.dumps( { 'response' : names } )
 
 
