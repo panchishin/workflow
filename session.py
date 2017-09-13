@@ -32,7 +32,8 @@ def restore() :
   print "... done."
 
 
-def doEpochOfTraining( loss, train, data_feed, batches=55000/100, batch_size=100, rate=LEARNING_RATE ) :
+def doEpochOfTraining( loss, train, data_feed, batches=0, batch_size=100, rate=LEARNING_RATE ) :
+  batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size
   for index in range(1,batches+1) :
     result,_ = sess.run( [loss,train], feed_dict={autoencode_model.x_in:data_feed.nextBatch(batch_size),autoencode_model.learning_rate:rate})
     if index == 1 or index == batches :
