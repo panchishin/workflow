@@ -1,7 +1,7 @@
 import autoencode_model
 import session
 
-session.restoreSession()
+session.restore()
 autoencode_model = session.autoencode_model
 
 from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
@@ -10,6 +10,6 @@ data = LazyLoadWrapper( BatchWrapper( ResizeWrapper( ReshapeWrapper( Mnist(), [2
 print "Start training test ..."
 session.doEpochOfTraining( autoencode_model.loss_6 , autoencode_model.train_6 , data_feed=data, batches=10 , batch_size=50 )
 print "... finished training test."
-session.saveSession()
+session.save()
 
 

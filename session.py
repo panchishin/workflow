@@ -6,29 +6,29 @@ LEARNING_RATE = 1e-3
 
 sess = None
 
-def startSession() :
+def start() :
   global sess
   if sess == None :
     sess = tf.Session()
 
-def resetSession() :
+def reset() :
   print "Resetting session ..."
   sess.run( tf.global_variables_initializer() )
   print "... done."
 
-def saveSession() :
+def save() :
   print "Saving session ..."
   tf.train.Saver().save(sess,"meta-data/autoencode_model")
   print "... done."
 
-def restoreSession() :
-  startSession()
+def restore() :
+  start()
   print "Restoring session ..."
   try :
     tf.train.Saver().restore(sess,"meta-data/autoencode_model")
   except :
     print "Can't restore.  Resetting."
-    resetSession()
+    reset()
   print "... done."
 
 

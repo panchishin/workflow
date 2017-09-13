@@ -1,5 +1,5 @@
 import session
-session.restoreSession()
+session.restore()
 import numpy as np
 import label_predict
 from embeddings import Embeddings

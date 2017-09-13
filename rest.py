@@ -1,5 +1,5 @@
 import session
-session.restoreSession()
+session.restore()
 import falcon
 import os.path  # for serving html files
 import json
@@ -97,18 +97,18 @@ class DoLearning:
 
 class ResetSession:
   def on_get(self, req, resp) :
-    session.resetSession();
+    session.reset();
     embeddings.reset()
     resp.body = json.dumps( { 'response': 'done'} )
 
 class RestoreSession:
   def on_get(self, req, resp) :
-    session.restoreSession();
+    session.restore();
     resp.body = json.dumps( { 'response': 'done'} )
 
 class SaveSession:
   def on_get(self, req, resp) :
-    session.saveSession();
+    session.save();
     resp.body = json.dumps( { 'response': 'done'} )
 
 
