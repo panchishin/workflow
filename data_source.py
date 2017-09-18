@@ -1,4 +1,5 @@
 class Mnist:
+
     def __init__(self, training=True):
         self.training = training
 
@@ -19,6 +20,7 @@ class Mnist:
 
 
 class ReshapeWrapper:
+
     def __init__(self, source, target_shape):
         self.source = source
         self.target_shape = target_shape
@@ -41,6 +43,7 @@ class ReshapeWrapper:
 
 
 class ResizeWrapper:
+
     def __init__(self, source, target_size):
         self.source = source
         self.target_size = target_size
@@ -69,6 +72,7 @@ class ResizeWrapper:
 
 
 class BatchWrapper:
+
     def __init__(self, source):
         self.source = source
 
@@ -97,6 +101,7 @@ class BatchWrapper:
 
 
 class LazyLoadWrapper:
+
     def __init__(self, source):
         self.source = source
         self.uninitialized = True

@@ -27,8 +27,7 @@ def autoencode(input, target, depth, color_depth, reuse=True):
     for index in range(depth, 0, -1):
         autoencoding_layer.append(decode(autoencoding_layer[-1], color_depth * 2 ** index, reuse=reuse))
     result = autoencoding_layer[-1]
-    loss = tf.log(
-        tf.reduce_mean(target * tf.square(target - result)) + tf.reduce_mean((1 - target) * tf.square(target - result)))
+    loss = tf.log(tf.reduce_mean(target * tf.square(target - result)) + tf.reduce_mean((1 - target) * tf.square(target - result)))
     return result, loss, embedding
 
 

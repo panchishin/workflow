@@ -3,6 +3,7 @@ import layer
 
 
 class model:
+
     def __init__(self, number_of_classes=2, training_factor=.3):
         self.emb_in = tf.placeholder(tf.float32, [None, 32], name="emb_in")
         self.category_in = tf.placeholder(tf.float32, [None, number_of_classes], name="category")
