@@ -33,6 +33,7 @@ def autoencode(input, target, depth, color_depth, reuse=True):
 
 
 class Model:
+
     def __init__(self, size=32, high_low_noise_value=0.02, color_depth=1):
         self.SIZE = size
         self.HIGH_LOW_NOISE = high_low_noise_value

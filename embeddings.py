@@ -1,4 +1,5 @@
 class Embeddings:
+
     def __init__(self, predictor=None, max_search_size=2000):
         self.data_set = []
         self.all_embeddings = []
@@ -16,8 +17,8 @@ class Embeddings:
 
     def getEmbeddings(self):
         if len(self.all_embeddings) == 0:
-            self.all_embeddings = self.autoencode_predict.sess.run(self.autoencode_model.embedding,
-                                                                   feed_dict={
-                                                                       self.autoencode_model.x_in: self.data_set}).reshape(
-                [-1, self.autoencode_model.SIZE])
+            feed_dict = {self.autoencode_model.x_in: self.data_set}
+
+            self.all_embeddings = self.autoencode_predict.sess.run(self.autoencode_model.embedding, feed_dict=feed_dict)
+            self.all_embeddings = self.all_embeddings.reshape([-1, self.autoencode_model.SIZE])
         return self.all_embeddings
