@@ -8,7 +8,7 @@ import numpy as np
 from scipy import spatial
 autoencode_model = autoencode_predict.autoencode_model
 from embeddings import Embeddings
-embeddings = Embeddings(autoencode_predict,autoencode_model)
+embeddings = Embeddings(autoencode_predict)
 import nearest_neighbour
 import label_predict
 from sklearn.manifold import TSNE
