@@ -11,7 +11,7 @@ class Mnist:
         import workflow_util
 
         with workflow_util.block_stdout():
-            mnist = input_data.read_data_sets('./cache', one_hot=True, validation_size=0)
+            mnist = input_data.read_data_sets('./cache', one_hot=True)
 
         self.images = mnist.train.images if training else mnist.test.images
         self.labels = mnist.train.labels if training else mnist.test.labels
