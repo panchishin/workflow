@@ -7,8 +7,8 @@ echo git checkout meta-data
 git checkout meta-data
 
 echo ========================
-echo python data_source.py
-python data_source.py
+echo python data_source_test.py
+python data_source_test.py
 
 echo ========================
 echo python label_test.py 
