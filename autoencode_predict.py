@@ -15,24 +15,24 @@ class predict:
             self.sess = tf.Session()
 
     def reset(self):
-        print "Resetting session ..."
+        print "Resetting session ...",
         self.sess.run(tf.global_variables_initializer())
-        print "... done."
+        print "done."
 
     def save(self):
-        print "Saving session ..."
+        print "Saving session ...",
         tf.train.Saver().save(self.sess, self.name)
-        print "... done."
+        print "done."
 
     def restore(self):
         self.start()
-        print "Restoring session ..."
+        print "Restoring session ...",
         try:
             tf.train.Saver().restore(self.sess, self.name)
         except:
-            print "Can't restore. Resetting."
+            print "Can't restore. Resetting ...",
             self.reset()
-        print "... done."
+        print "done."
 
     def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=100, rate=None):
         rate = self.LEARNING_RATE if rate is None else rate
