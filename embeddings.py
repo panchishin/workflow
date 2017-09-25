@@ -20,5 +20,6 @@ class Embeddings:
             feed_dict = {self.autoencode_model.x_in: self.data_set}
 
             self.all_embeddings = self.autoencode_predict.sess.run(self.autoencode_model.embedding, feed_dict=feed_dict)
-            self.all_embeddings = self.all_embeddings.reshape([-1, self.autoencode_model.SIZE])
+            self.all_embeddings = self.all_embeddings.reshape([self.all_embeddings.shape[0], -1])
+
         return self.all_embeddings
