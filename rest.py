@@ -8,17 +8,32 @@ import nearest_neighbour
 import label_predict
 from sklearn.manifold import TSNE
 
-from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
+from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist, FileReader
 
-predictor = autoencode_predict.predict()
-predictor.restore()
-autoencode_model = predictor.autoencode_model
 
-embeddings = Embeddings(predictor)
+def choose_mnist():
+    global predictor, autoencode_model, embeddings, imageData
+    predictor = autoencode_predict.predict(name="meta-data/mnist/autoencode_model")
+    predictor.restore()
+    autoencode_model = predictor.autoencode_model
+    embeddings = Embeddings(predictor)
+    imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(ReshapeWrapper(Mnist(), [28, 28, 1]), [32, 32])))
+    print "Loading images ...",
+    embeddings.data_set = imageData.getImages()
+    print "done"
 
-imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(ReshapeWrapper(Mnist(), [28, 28, 1]), [32, 32])))
 
-embeddings.data_set = imageData.getImages()
+def choose_garden():
+    global predictor, autoencode_model, embeddings, imageData
+    predictor = autoencode_predict.predict(name="meta-data/garden/garden_model", color_depth=3)
+    predictor.restore()
+    autoencode_model = predictor.autoencode_model
+    embeddings = Embeddings(predictor)
+    config_data = json.load(open("data/file_data.json", "r"))
+    imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(FileReader(config_data["file_names"], config_data["labels"]), [32, 32])))
+    print "Loading images ...",
+    embeddings.data_set = imageData.getImages()
+    print "done"
 
 
 def getImageWithIndex(index):
@@ -26,8 +41,13 @@ def getImageWithIndex(index):
 
 
 def getExample(index, layer):
-    return predictor.sess.run(layer, feed_dict={autoencode_model.x_in: getImageWithIndex(index)}).reshape(
-        [autoencode_model.SIZE, autoencode_model.SIZE])
+    image = getImageWithIndex(index)
+    data = predictor.sess.run(layer, feed_dict={autoencode_model.x_in: image})
+
+    if image.shape[3] == 1:
+        return data.reshape([autoencode_model.SIZE, autoencode_model.SIZE])
+    else:
+        return data.reshape(image.shape[1:])
 
 
 def arrayToImage(data):
@@ -71,9 +91,8 @@ class LayerImage:
 
     def on_get(self, req, resp, layer, index, junk):
         try:
-            ml_layer = \
-                [autoencode_model.x_noisy, autoencode_model.x_out_1, autoencode_model.x_out_2, autoencode_model.x_out_3,
-                 autoencode_model.x_out_4, autoencode_model.x_out_5, autoencode_model.x_in][int(layer)]
+            ml_layer = [autoencode_model.x_noisy, autoencode_model.x_out_1, autoencode_model.x_out_2, autoencode_model.x_out_3,
+                        autoencode_model.x_out_4, autoencode_model.x_out_5, autoencode_model.x_in][int(layer)]
             falconRespondArrayAsImage(
                 getExample(int(index), ml_layer),
                 resp
@@ -200,11 +219,13 @@ class GroupPredict:
                 self.previous_response_index = response_index
                 self.previous_group_predict_page = 0
         else:
+            print "The size of the embeddings is", embeddings.getEmbeddings().shape
             result, error = label_predict.predictiveMultiClassWeights(grouping, embeddings)
             self.previous_group_predict_result = result
             self.previous_group_predict_page = 0
             self.previous_group_predict_data_hash = hash(json.dumps(grouping))
             self.previous_error = error
+            print "the result shape is", result.shape
             if (result.shape[1] == 10):
                 self.report(result)
 
@@ -266,6 +287,20 @@ class TSne:
         resp.body = json.dumps({'response': data})
 
 
+class ChooseDataset:
+
+    def on_get(self, req, resp, data_set):
+        if data_set == "mnist":
+            choose_mnist()
+            resp.body = json.dumps({'response': {'result': 'success', 'size': imageData.getLabels().shape[0]}})
+            return
+        if data_set == "garden":
+            choose_garden()
+            resp.body = json.dumps({'response': {'result': 'success', 'size': imageData.getLabels().shape[0]}})
+            return
+        resp.body = json.dumps({'response': {'result': 'failure'}})
+
+
 """
 ================================
 Add the endpoints to the service
@@ -282,3 +317,4 @@ api.add_route('/similar/{index}', Similar())
 api.add_route('/blend/{a_value}/{b_value}/{amount}', BlendImage())
 api.add_route('/group_predict/{response_index}', GroupPredict())
 api.add_route('/tsne/{size}', TSne())
+api.add_route('/choose_dataset/{data_set}', ChooseDataset())

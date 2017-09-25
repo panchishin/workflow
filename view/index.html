@@ -11,6 +11,9 @@
 <body ng-controller="mainController">
 	<h1>Session Controls</h1>
 	<div class="session_controls">
+		<button class="btn btn-primary btn-sm" ng-click="choose_dataset('mnist')">Mnist</button>
+		<button class="btn btn-primary btn-sm" ng-click="choose_dataset('garden')">Garden</button>
+
 		<button ng-show="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Paused</button>
 	  	<button ng-hide="pause_training" class="btn btn-primary btn-sm" ng-click="pause_training=!pause_training">Training Live</button>
 		<button class="btn btn-primary btn-sm" ng-click="show_embedding_section=!show_embedding_section">Embeddings</button>
@@ -20,6 +23,7 @@
 		<button ng-hide="show_tsne_section" class="btn btn-primary btn-sm" ng-click="show_tsne_section=!show_tsne_section">t-SNE</button>
 		<button ng-show="show_tsne_section" class="btn btn-primary btn-sm" ng-click="show_tsne_section=!show_tsne_section">Search</button>
 		<p class="inline">Create new group</p><input type="text" ng-model="new_group_name"><button ng-show="new_group_name" class="btn btn-primary btn-sm label_button" ng-click="create_new_group(new_group_name);new_group_name=''">Add</button>
+		<p class="inline">Data size = {{data_size}}</p>
 	</div>
 
 

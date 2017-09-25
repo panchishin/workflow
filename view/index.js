@@ -18,6 +18,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.isLabeled = 0;
     $scope.search_order = "forward";
     $scope.search_index = .5;
+    $scope.data_size = 55000
 
 
     function retrieveSnapShot() {
@@ -57,7 +58,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     function getRandomImageIndex() {
-        return Math.floor( Math.random() * 55000 )
+        return Math.floor( Math.random() *  $scope.data_size )
     }
 
     $scope.randomizeImage = function() {
@@ -423,6 +424,11 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         })
     }
 
+    $scope.choose_dataset = function(name) {
+        $http({method:"GET" , url : "/choose_dataset/"+name, cache: false}).then(function successCallback(result) {
+            $scope.data_size = parseInt(result.data.response.size)
+        })
+    }
 
 
     /***************************   TSNE CODE  END   ***********************************/
