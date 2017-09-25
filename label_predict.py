@@ -71,9 +71,10 @@ def _splitTrainingAndTest(examples, split_fraction=.5):
 
 
 def _doTraining(examples, training_examples, test_examples, embeddings, has_unknown=False):
+
     label_graph = tf.Graph()
     with label_graph.as_default():
-        model = label_model.model(number_of_classes=len(examples) + (1 if has_unknown else 0))
+        model = label_model.model(number_of_classes=len(examples) + (1 if has_unknown else 0), width=embeddings.getEmbeddings().shape[1])
         with tf.Session(graph=label_graph) as sess:
             sess.run(tf.global_variables_initializer())
             best_error = 1.0
