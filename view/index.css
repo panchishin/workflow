@@ -48,13 +48,13 @@ div.texty {
 
 div.imageline {
     margin : 1px;
-    height : 33px;
+    height : 64px;
 }
 
 
 img.mnist {
-    height : 32px;
-    width : 32px;
+    height : 64px;
+    width : 64px;
     background-color: #FFF;
     display: inline-block;
 }
