@@ -1,6 +1,21 @@
 import data_source
 
 print "RUNNING TESTS"
+
+files = ["166261_l.jpg", "165176_l.jpg", "164425_l.jpg"]
+labels = ["bob", "betty", "bob"]
+fileLoader = data_source.LazyLoadWrapper(data_source.FileReader(files, labels))
+if fileLoader.getImages().shape == tuple([6, 240, 240, 3]):
+    print ".",
+else:
+    print "FAIL", fileLoader.getImages().shape, "should equal [6,240,240,3]"
+
+if fileLoader.getLabels().shape == tuple([6, 2]):
+    print ".",
+else:
+    print "FAIL", fileLoader.getLabels().shape, "should equal [6,2]"
+
+
 mnist = data_source.LazyLoadWrapper(data_source.Mnist())
 if mnist.getImages().shape == tuple([55000, 28 * 28]):
     print ".",

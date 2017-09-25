@@ -23,6 +23,68 @@ class Mnist:
         return self.labels
 
 
+class FileReader:
+
+    def __init__(self, files, label_names, height=240, width=240, channels=3):
+
+        self.files = files
+        self.label_names = label_names
+        self.height = height
+        self.width = width
+        self.channels = channels
+
+    def init(self):
+        import numpy as np
+
+        one_hot, identity = self._initOneHot(self.label_names)
+
+        self.labels = []
+        self.images = []
+        self._preImageFetch()
+        for file_name, label in zip(self.files, self.label_names):
+            for image in self.getImagesFromFile(file_name):
+                self.labels.append(identity[one_hot.index(label), :].tolist())
+                self.images.append(image)
+        self.labels = np.array(self.labels)
+        self.images = np.array(self.images)
+
+        self._postImageFetch()
+
+    def _initOneHot(self, label_names):
+        import numpy as np
+        one_hot = []
+        for label in label_names:
+            if label not in one_hot:
+                one_hot.append(label)
+        identity = np.identity(len(one_hot), dtype=int)
+        return one_hot, identity
+
+    def _preImageFetch(self):
+        import tensorflow as tf
+
+        self.tf_img_name = tf.placeholder(dtype=tf.string)
+        self.tf_img = tf.image.decode_jpeg(tf.read_file(self.tf_img_name), channels=self.channels)
+        self.tf_img = tf.image.resize_image_with_crop_or_pad(self.tf_img, self.height, self.width)
+        self.tf_img = tf.cast(self.tf_img, dtype=tf.float32)
+        self.tf_img = self.tf_img / 256.0
+        self.tf_img_flip = tf.image.flip_left_right(self.tf_img)
+        self.sess = tf.Session()
+
+    def _postImageFetch(self):
+        self.sess.close()
+        del(self.sess)
+
+    def getImagesFromFile(self, file_name):
+        images = self.sess.run([self.tf_img, self.tf_img_flip], feed_dict={self.tf_img_name: "../garden/data/" + file_name})
+        return images
+
+    def getImages(self):
+        return self.images
+
+    def getLabels(self):
+        return self.labels
+
+
 class ReshapeWrapper:
 
     def __init__(self, source, target_shape):
