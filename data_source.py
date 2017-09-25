@@ -42,9 +42,14 @@ class FileReader:
         self.images = []
         self._preImageFetch()
         for file_name, label in zip(self.files, self.label_names):
-            for image in self.getImagesFromFile(file_name):
-                self.labels.append(identity[one_hot.index(label), :].tolist())
-                self.images.append(image)
+            try:
+                for image in self.getImagesFromFile(file_name):
+                    self.labels.append(identity[one_hot.index(label), :].tolist())
+                    self.images.append(image)
+            except:
+                print "file", file_name, "not found"
+                pass
+
         self.labels = np.array(self.labels)
         self.images = np.array(self.images)
 
@@ -74,8 +79,18 @@ class FileReader:
         self.sess.close()
         del(self.sess)
 
+    def nameToURL(self, name):
+        BASE_URL = 'https://mygardenorg.s3.amazonaws.com/plantifier/'
+        return BASE_URL + name
+
     def getImagesFromFile(self, file_name):
-        images = self.sess.run([self.tf_img, self.tf_img_flip], feed_dict={self.tf_img_name: "../garden/data/" + file_name})
+        import os
+        import urllib
+        full_name = "../garden/data/" + file_name
+        if not os.path.isfile(full_name):
+            print "downloading", file_name
+            urllib.urlretrieve(self.nameToURL(file_name), full_name)
+        images = self.sess.run([self.tf_img, self.tf_img_flip], feed_dict={self.tf_img_name: full_name})
         return images
 
     def getImages(self):
