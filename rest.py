@@ -1,22 +1,20 @@
 import autoencode_predict
 
-autoencode_predict.restore()
 import falcon
 import os.path  # for serving html files
 import json
-import random
 import numpy as np
-from scipy import spatial
-
-autoencode_model = autoencode_predict.autoencode_model
 from embeddings import Embeddings
-
-embeddings = Embeddings(autoencode_predict)
 import nearest_neighbour
 import label_predict
 from sklearn.manifold import TSNE
 
 from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
+
+autoencode_predict.restore()
+autoencode_model = autoencode_predict.autoencode_model
+
+embeddings = Embeddings(autoencode_predict)
 
 imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(ReshapeWrapper(Mnist(), [28, 28, 1]), [32, 32])))
 
@@ -183,8 +181,7 @@ class GroupPredict:
             conf_filter = np.argsort(np.max(result, 1))[::-1]
             conf_filter = conf_filter[: int(conf_filter.shape[0] * confidence)]
             print "%5.2f%s %4.2f %5d ," % (
-                100. * (np.argmax(imageData.getLabels()[conf_filter, :], 1)
-                        != np.argmax(result[conf_filter, :], 1)).mean(),
+                100. * (np.argmax(imageData.getLabels()[conf_filter, :], 1) != np.argmax(result[conf_filter, :], 1)).mean(),
                 "%", confidence, conf_filter.shape[0]),
         print "\n"
 
@@ -258,7 +255,7 @@ class TSne:
         self.primed = False
 
     def on_get(self, req, resp, size):
-        if self.primed == False:
+        if self.primed is False:
             self.primed = True
             self.calculate_tsne()
         size = min(int(size), self.max_size)
