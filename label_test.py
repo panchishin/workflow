@@ -1,11 +1,10 @@
 import numpy as np
 import label_predict
 from embeddings import Embeddings
+import nearest_neighbour
+from data_source import LazyLoadWrapper, ResizeWrapper, ReshapeWrapper, Mnist
 
 embeddings = Embeddings()
-import nearest_neighbour
-
-from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist
 
 imageData = LazyLoadWrapper(ResizeWrapper(ReshapeWrapper(Mnist(False), [28, 28, 1]), [32, 32]))
 
