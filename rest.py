@@ -8,7 +8,7 @@ import nearest_neighbour
 import label_predict
 from sklearn.manifold import TSNE
 
-from data_source import LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist, FileReader
+from data_source import ConcatWrapper, SliceWrapper, LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist, FileReader
 
 
 def choose_mnist():
@@ -23,16 +23,41 @@ def choose_mnist():
     print "done"
 
 
+garden_data = None
+
+
 def choose_garden():
-    global predictor, autoencode_model, embeddings, imageData
+    global predictor, autoencode_model, embeddings, imageData, garden_data
+
+    if garden_data is not None:
+        embeddings.data_set = garden_data
+        return
+
     predictor = autoencode_predict.predict(name="meta-data/garden/garden_model", color_depth=3)
     predictor.restore()
     autoencode_model = predictor.autoencode_model
     embeddings = Embeddings(predictor)
     config_data = json.load(open("data/file_data.json", "r"))
-    imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(FileReader(config_data["file_names"], config_data["labels"]), [32, 32])))
+
+    print "Loading files ...",
+    files = LazyLoadWrapper(ResizeWrapper(FileReader(config_data["file_names"], config_data["labels"]), [64, 64]))
+    files.init()
+    print "done."
+    print "Calculating full size ...",
+    full_size = LazyLoadWrapper(ResizeWrapper(files, [32, 32]))
+    full_size.init()
+    print "done."
+    print "Calculating half size ...",
+    half_size = LazyLoadWrapper(SliceWrapper(files, 32, 8))
+    half_size.init()
+    print "done."
+    print "Calculating concat the whole thing ...",
+    imageData = LazyLoadWrapper(ConcatWrapper([full_size, half_size]))
+    print "done."
+
     print "Loading images ...",
     embeddings.data_set = imageData.getImages()
+    garden_data = embeddings.data_set
     print "done"
 
 
