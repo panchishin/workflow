@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Mnist:
 
     def __init__(self, training=True):
@@ -92,6 +95,90 @@ class FileReader:
             urllib.urlretrieve(self.nameToURL(file_name), full_name)
         images = self.sess.run([self.tf_img, self.tf_img_flip], feed_dict={self.tf_img_name: full_name})
         return images
+
+    def getImages(self):
+        return self.images
+
+    def getLabels(self):
+        return self.labels
+
+
+class InitOnceWrapper:
+
+    def __init__(self, source):
+        self.source = source
+        self.is_init = False
+
+    def init(self):
+        if not self.is_init:
+            self.is_init = True
+            self.source.init()
+
+    def getImages(self):
+        return self.source.getImages()
+
+    def getLabels(self):
+        return self.source.getLabels()
+
+
+class ConcatWrapper:
+
+    def __init__(self, sources):
+        self.sources = sources
+        self.images = None
+        self.labels = None
+
+    def init(self):
+        for index in range(len(self.sources)):
+            self.sources[index].init()
+            self.concat(self.sources[index])
+            self.sources[index] = None
+
+    def concat(self, source):
+        if self.images is None:
+            self.images = source.getImages()
+            self.labels = source.getLabels()
+        else:
+            self.images = np.concatenate((self.images, source.getImages()), 0)
+            self.labels = np.concatenate((self.labels, source.getLabels()), 0)
+
+    def getImages(self):
+        return self.images
+
+    def getLabels(self):
+        return self.labels
+
+
+class SliceWrapper:
+
+    def __init__(self, source, width=64, stride=18):
+        self.source = source
+        self.width = width
+        self.stride = stride
+        self.images = None
+        self.labels = None
+
+    def init(self):
+        self.source.init()
+        self.set(self.source)
+        del self.source
+
+    def set(self, source):
+        source_images = source.getImages()
+        source_labels = source.getLabels()
+        x_range = range(0, source_images.shape[1] - self.width + 1, self.stride)
+        y_range = range(0, source_images.shape[2] - self.width + 1, self.stride)
+
+        for x in x_range:
+            for y in y_range:
+                sub_images = source_images[:, x:(x + self.width), y:(y + self.width), :]
+                sub_labels = source_labels
+                if self.images is None:
+                    self.images = sub_images
+                    self.labels = sub_labels
+                else:
+                    self.images = np.concatenate((self.images, sub_images), 0)
+                    self.labels = np.concatenate((self.labels, sub_labels), 0)
 
     def getImages(self):
         return self.images
