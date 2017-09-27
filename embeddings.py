@@ -6,10 +6,9 @@ class Embeddings:
         self.max_search_size = max_search_size
         if predictor is None:
             import autoencode_predict
-            autoencode_predict.restore()
-            self.autoencode_predict = autoencode_predict
-        else:
-            self.autoencode_predict = predictor
+            predictor = autoencode_predict.predict()
+            predictor.restore()
+        self.autoencode_predict = predictor
         self.autoencode_model = self.autoencode_predict.autoencode_model
 
     def reset(self):
