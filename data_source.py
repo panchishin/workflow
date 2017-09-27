@@ -103,24 +103,6 @@ class FileReader:
         return self.labels
 
 
-class InitOnceWrapper:
-
-    def __init__(self, source):
-        self.source = source
-        self.is_init = False
-
-    def init(self):
-        if not self.is_init:
-            self.is_init = True
-            self.source.init()
-
-    def getImages(self):
-        return self.source.getImages()
-
-    def getLabels(self):
-        return self.source.getLabels()
-
-
 class ConcatWrapper:
 
     def __init__(self, sources):
