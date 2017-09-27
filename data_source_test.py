@@ -4,7 +4,7 @@ print "RUNNING TESTS"
 
 files = ["166261_l.jpg", "165176_l.jpg", "164425_l.jpg"]
 labels = ["bob", "betty", "bob"]
-fileLoader = data_source.InitOnceWrapper(data_source.LazyLoadWrapper(data_source.FileReader(files, labels)))
+fileLoader = data_source.LazyLoadWrapper(data_source.FileReader(files, labels))
 if fileLoader.getImages().shape == tuple([6, 240, 240, 3]):
     print ".",
 else:
