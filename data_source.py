@@ -111,18 +111,12 @@ class ConcatWrapper:
         self.labels = None
 
     def init(self):
-        for index in range(len(self.sources)):
-            self.sources[index].init()
-            self.concat(self.sources[index])
-            self.sources[index] = None
+        self.concat(self.sources)
+        del self.sources
 
-    def concat(self, source):
-        if self.images is None:
-            self.images = source.getImages()
-            self.labels = source.getLabels()
-        else:
-            self.images = np.concatenate((self.images, source.getImages()), 0)
-            self.labels = np.concatenate((self.labels, source.getLabels()), 0)
+    def concat(self, sources):
+        self.images = np.concatenate([source.getImages() for source in self.sources], 0)
+        self.labels = np.concatenate([source.getLabels() for source in self.sources], 0)
 
     def getImages(self):
         return self.images
