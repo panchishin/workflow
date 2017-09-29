@@ -7,7 +7,7 @@ class predict:
     def __init__(self, name="meta-data/mnist/autoencode_model", color_depth=1):
         self.name = name
         self.autoencode_model = Model(color_depth=color_depth)
-        self.LEARNING_RATE = 1e-3
+        self.LEARNING_RATE = 1e-4
         self.sess = None
 
     def start(self):

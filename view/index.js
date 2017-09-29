@@ -111,7 +111,11 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.learn = function(index) {
         $http({ method : "GET" , url : "/learn/"+index , cache: false}).then(function successCallback(result) {
             $scope.data.training_sessions[index] += 1;
-            $scope.randomizeImage();
+            if ( $scope.data.training_sessions[index] % 10 == 0 ) {
+                $scope.randomizeImage();
+            } else {
+                $scope.learn(index);
+            }
         })
     }
 
@@ -427,6 +431,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.choose_dataset = function(name) {
         $http({method:"GET" , url : "/choose_dataset/"+name, cache: false}).then(function successCallback(result) {
             $scope.data_size = parseInt(result.data.response.size)
+            $scope.randomizeImage();
         })
     }
 

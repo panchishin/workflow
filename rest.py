@@ -52,7 +52,7 @@ def choose_garden():
     half_size.init()
     print "done."
     print "Calculating concat the whole thing ...",
-    imageData = LazyLoadWrapper(ConcatWrapper([full_size, half_size]))
+    imageData = LazyLoadWrapper(BatchWrapper(ConcatWrapper([full_size, half_size])))
     print "done."
 
     print "Loading images ...",
