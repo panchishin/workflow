@@ -111,10 +111,12 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.learn = function(index) {
         $http({ method : "GET" , url : "/learn/"+index , cache: false}).then(function successCallback(result) {
             $scope.data.training_sessions[index] += 1;
-            if ( $scope.data.training_sessions[index] % 10 == 0 ) {
-                $scope.randomizeImage();
-            } else {
+            $scope.randomizeImage();
+            var retrain = function() {
                 $scope.learn(index);
+            }
+            if ( $scope.data.training_sessions[index] % 10 != 0 ) {
+                $timeout(retrain, 2000);
             }
         })
     }
