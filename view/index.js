@@ -327,7 +327,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         ;        
 
         gState.append("image")
-            .attr( "xlink:href" , function(d) { return "http://localhost:9090/layer-1/" + d.id + "/0" } )
+            .attr( "xlink:href" , function(d) { return "/layer-1/" + d.id + "/0" } )
             .attr( { height:img_size, width:img_size })
 
 
