@@ -39,7 +39,6 @@ class Model:
         self.COLOR_DEPTH = color_depth
 
         self.x_in = tf.placeholder(tf.float32, [None, size, size, color_depth], name="x0")
-        self.learning_rate = tf.placeholder(tf.float32)
 
         self.x_noisy = layer.high_low_noise(self.x_in, high_low_noise_value)
 
@@ -53,9 +52,9 @@ class Model:
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
-            self.train_1 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss_1)
-            self.train_2 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss_2)
-            self.train_3 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss_3)
-            self.train_4 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss_4)
-            self.train_5 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss_5)
-            self.train_6 = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss_6)
+            self.train_1 = tf.train.AdamOptimizer().minimize(self.loss_1)
+            self.train_2 = tf.train.AdamOptimizer().minimize(self.loss_2)
+            self.train_3 = tf.train.AdamOptimizer().minimize(self.loss_3)
+            self.train_4 = tf.train.AdamOptimizer().minimize(self.loss_4)
+            self.train_5 = tf.train.AdamOptimizer().minimize(self.loss_5)
+            self.train_6 = tf.train.AdamOptimizer().minimize(self.loss_6)

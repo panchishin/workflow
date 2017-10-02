@@ -7,7 +7,6 @@ class predict:
     def __init__(self, name="meta-data/mnist/autoencode_model", color_depth=1):
         self.name = name
         self.autoencode_model = Model(color_depth=color_depth)
-        self.LEARNING_RATE = 1e-4
         self.sess = None
 
     def start(self):
@@ -34,11 +33,10 @@ class predict:
             self.reset()
         print "done."
 
-    def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=100, rate=None):
-        rate = self.LEARNING_RATE if rate is None else rate
+    def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=100):
         batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size
         for index in range(1, batches + 1):
             result, _ = self.sess.run([loss, train], feed_dict={self.autoencode_model.x_in: data_feed.nextBatch(
-                batch_size), self.autoencode_model.learning_rate: rate})
+                batch_size)})
             if index == 1 or index == batches:
                 print "index :", index, ", loss:", result
