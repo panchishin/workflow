@@ -7,58 +7,72 @@ from embeddings import Embeddings
 import nearest_neighbour
 import label_predict
 from sklearn.manifold import TSNE
-
 from data_source import ConcatWrapper, SliceWrapper, LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist, FileReader
+
+data_sets = {}
 
 
 def choose_mnist():
-    global predictor, autoencode_model, embeddings, imageData
-    predictor = autoencode_predict.predict(name="meta-data/mnist/autoencode_model")
+    print "CHOSE MNIST"
+    global predictor, autoencode_model, embeddings, imageData, data_sets
+
+    predictor = autoencode_predict.predict(name="meta-data/mnist/autoencode_model", color_depth=1)
+    predictor.stop()
     predictor.restore()
     autoencode_model = predictor.autoencode_model
     embeddings = Embeddings(predictor)
-    imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(ReshapeWrapper(Mnist(), [28, 28, 1]), [32, 32])))
-    print "Loading images ...",
-    embeddings.data_set = imageData.getImages()
-    print "done"
 
+    print "Loading images ..."
+    if 'mnist' not in data_sets:
+        print "Key missing.  Building ImageData"
+        imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(ReshapeWrapper(Mnist(), [28, 28, 1]), [32, 32])))
+        imageData.getImages()
+        data_sets['mnist'] = imageData
 
-garden_data = None
+    print "  mnist shape is", data_sets['mnist'].getImages().shape
+    print "... loading images done"
+    embeddings.data_set = data_sets['mnist'].getImages()
+    return data_sets['mnist']
 
 
 def choose_garden():
-    global predictor, autoencode_model, embeddings, imageData, garden_data
-
-    if garden_data is not None:
-        embeddings.data_set = garden_data
-        return
+    print "CHOSE GARDEN"
+    global predictor, autoencode_model, embeddings, imageData, data_sets
 
     predictor = autoencode_predict.predict(name="meta-data/garden/garden_model", color_depth=3)
+    predictor.stop()
     predictor.restore()
     autoencode_model = predictor.autoencode_model
     embeddings = Embeddings(predictor)
     config_data = json.load(open("data/file_data.json", "r"))
 
-    print "Loading files ...",
-    files = LazyLoadWrapper(ResizeWrapper(FileReader(config_data["file_names"], config_data["labels"]), [64, 64]))
-    files.init()
-    print "done."
-    print "Calculating full size ...",
-    full_size = LazyLoadWrapper(ResizeWrapper(files, [32, 32]))
-    full_size.init()
-    print "done."
-    print "Calculating half size ...",
-    half_size = LazyLoadWrapper(SliceWrapper(files, 32, 8))
-    half_size.init()
-    print "done."
-    print "Calculating concat the whole thing ...",
-    imageData = LazyLoadWrapper(BatchWrapper(ConcatWrapper([full_size, half_size])))
-    print "done."
+    print "Loading images ..."
+    if 'garden' not in data_sets:
+        print "Key missing.  Building ImageData"
 
-    print "Loading images ...",
-    embeddings.data_set = imageData.getImages()
-    garden_data = embeddings.data_set
-    print "done"
+        print "Loading files ...",
+        files = LazyLoadWrapper(ResizeWrapper(FileReader(config_data["file_names"], config_data["labels"]), [64, 64]))
+        files.init()
+        print "done."
+        print "Calculating full size ...",
+        full_size = LazyLoadWrapper(ResizeWrapper(files, [32, 32]))
+        full_size.init()
+        print "done."
+        print "Calculating half size ...",
+        half_size = LazyLoadWrapper(SliceWrapper(files, 32, 16))
+        half_size.init()
+        print "done."
+        print "Calculating concat the whole thing ...",
+        imageData = LazyLoadWrapper(BatchWrapper(ConcatWrapper([full_size, half_size])))
+        print "done."
+
+        imageData.getImages()
+        data_sets['garden'] = imageData
+
+    print "  garden shape is", data_sets['garden'].getImages().shape
+    print "... loading images done"
+    embeddings.data_set = data_sets['garden'].getImages()
+    return data_sets['garden']
 
 
 def getImageWithIndex(index):
@@ -315,13 +329,14 @@ class TSne:
 class ChooseDataset:
 
     def on_get(self, req, resp, data_set):
+        global imageData
         if data_set == "mnist":
-            choose_mnist()
-            resp.body = json.dumps({'response': {'result': 'success', 'size': imageData.getLabels().shape[0]}})
+            imageData = choose_mnist()
+            resp.body = json.dumps({'response': {'result': 'success', 'set': 'mnist', 'size': imageData.getImages().shape}})
             return
         if data_set == "garden":
-            choose_garden()
-            resp.body = json.dumps({'response': {'result': 'success', 'size': imageData.getLabels().shape[0]}})
+            imageData = choose_garden()
+            resp.body = json.dumps({'response': {'result': 'success', 'set': 'garden', 'size': imageData.getImages().shape}})
             return
         resp.body = json.dumps({'response': {'result': 'failure'}})
 

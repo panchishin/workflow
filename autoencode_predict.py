@@ -6,19 +6,30 @@ class predict:
 
     def __init__(self, name="meta-data/mnist/autoencode_model", color_depth=1):
         self.name = name
-        self.autoencode_model = Model(color_depth=color_depth)
+        self.color_depth = color_depth
         self.sess = None
 
     def start(self):
         if self.sess is None:
+            tf.reset_default_graph()
+            self.autoencode_model = Model(color_depth=self.color_depth)
             self.sess = tf.Session()
 
+    def stop(self):
+        if self.sess is not None:
+            self.autoencode_model = None
+            self.sess.close()
+            self.sess = None
+            tf.reset_default_graph()
+
     def reset(self):
+        self.start()
         print "Resetting session ...",
         self.sess.run(tf.global_variables_initializer())
         print "done."
 
     def save(self):
+        self.start()
         print "Saving session ...",
         tf.train.Saver().save(self.sess, self.name)
         print "done."
