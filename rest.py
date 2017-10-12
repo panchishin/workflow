@@ -156,12 +156,11 @@ class DoLearning:
 
     def on_get(self, req, resp, index):
         print "TRAINING WITH", index
-        predictor.doEpochOfTraining(
-            [autoencode_model.loss_1, autoencode_model.loss_2, autoencode_model.loss_3, autoencode_model.loss_4,
-             autoencode_model.loss_5, autoencode_model.loss_6][int(index)],
-            [autoencode_model.train_1, autoencode_model.train_2, autoencode_model.train_3, autoencode_model.train_4,
-             autoencode_model.train_5, autoencode_model.train_6][int(index)],
-            dataset.imageData)
+        loss = [autoencode_model.loss_1, autoencode_model.loss_2, autoencode_model.loss_3, autoencode_model.loss_4,
+                autoencode_model.loss_5, autoencode_model.loss_6][int(index)]
+        train = [autoencode_model.train_1, autoencode_model.train_2, autoencode_model.train_3, autoencode_model.train_4,
+                 autoencode_model.train_5, autoencode_model.train_6][int(index)]
+        predictor.doEpochOfTraining(loss, train, dataset.imageData)
         embeddings.reset()
         resp.body = json.dumps({'response': 'done'})
 
