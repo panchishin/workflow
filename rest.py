@@ -8,6 +8,12 @@ import nearest_neighbour
 import label_predict
 from sklearn.manifold import TSNE
 from data_source import ConcatWrapper, SliceWrapper, LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist, FileReader
+import scipy.misc
+import tempfile
+import dummy_predict
+
+
+predictor = dummy_predict
 
 
 class Dataset:
@@ -99,39 +105,12 @@ class Dataset:
 dataset = Dataset()
 
 
-def getImageWithIndex(index):
-    return dataset.imageData.getImages()[index:index + 1]
-
-
-def getExample(index, layer):
-    image = getImageWithIndex(index)
-    data = predictor.sess.run(layer, feed_dict={autoencode_model.x_in: image})
-
-    if image.shape[3] == 1:
-        return data.reshape([autoencode_model.SIZE, autoencode_model.SIZE])
-    else:
-        return data.reshape(image.shape[1:])
-
-
-def arrayToImage(data):
-    import scipy.misc
-    import tempfile
+def falconRespondArrayAsImage(data, resp):
+    resp.content_type = 'image/png'
     with tempfile.TemporaryFile() as fp:
         scipy.misc.toimage(data).save(fp=fp, format="PNG")
         fp.seek(0)
-        return fp.read()
-
-
-def falconRespondArrayAsImage(data, resp):
-    resp.content_type = 'image/png'
-    resp.body = arrayToImage(data)
-
-
-"""
-================================
-Define the rest endpoints
-================================
-"""
+        resp.body = fp.read()
 
 
 class Display:
@@ -152,32 +131,23 @@ class Display:
 
 class LayerImage:
 
+    def getExample(self, index, layer):
+        image = dataset.imageData.getImages()[index:index + 1]
+        data = predictor.sess.run(layer, feed_dict={autoencode_model.x_in: image})
+
+        if image.shape[3] == 1:
+            return data.reshape([autoencode_model.SIZE, autoencode_model.SIZE])
+        else:
+            return data.reshape(image.shape[1:])
+
     def on_get(self, req, resp, layer, index, junk):
         try:
             ml_layer = [autoencode_model.x_noisy, autoencode_model.x_out_1, autoencode_model.x_out_2, autoencode_model.x_out_3,
                         autoencode_model.x_out_4, autoencode_model.x_out_5, autoencode_model.x_in][int(layer)]
             falconRespondArrayAsImage(
-                getExample(int(index), ml_layer),
+                self.getExample(int(index), ml_layer),
                 resp
             )
-        except Exception as e:
-            print(e)
-
-
-class BlendImage:
-
-    def on_get(self, req, resp, a_value, b_value, amount):
-        try:
-            amount = int(amount) / 100.0
-            a_embed = predictor.sess.run(autoencode_model.embedding,
-                                         feed_dict={autoencode_model.x_in: getImageWithIndex(int(a_value))})
-            b_embed = predictor.sess.run(autoencode_model.embedding,
-                                         feed_dict={autoencode_model.x_in: getImageWithIndex(int(b_value))})
-            blend_embed = a_embed * amount + b_embed * (1 - amount)
-            output = predictor.sess.run(autoencode_model.x_out_5,
-                                        feed_dict={autoencode_model.embedding: blend_embed,
-                                                   autoencode_model.x_in: getImageWithIndex(int(a_value))})
-            falconRespondArrayAsImage(output.reshape([autoencode_model.SIZE, autoencode_model.SIZE]), resp)
         except Exception as e:
             print(e)
 
@@ -196,26 +166,24 @@ class DoLearning:
         resp.body = json.dumps({'response': 'done'})
 
 
-class ResetSession:
+class SessionControl:
 
-    def on_get(self, req, resp):
-        predictor.reset()
-        embeddings.reset()
-        resp.body = json.dumps({'response': 'done'})
+    def on_get(self, req, resp, action):
+        if action == 'reset':
+            predictor.reset()
+            embeddings.reset()
+            resp.body = json.dumps({'response': 'done'})
+            return
+        if action == 'restore':
+            predictor.restore()
+            resp.body = json.dumps({'response': 'done'})
+            return
+        if action == 'save':
+            predictor.save()
+            resp.body = json.dumps({'response': 'done'})
+            return
 
-
-class RestoreSession:
-
-    def on_get(self, req, resp):
-        predictor.restore()
-        resp.body = json.dumps({'response': 'done'})
-
-
-class SaveSession:
-
-    def on_get(self, req, resp):
-        predictor.save()
-        resp.body = json.dumps({'response': 'done'})
+        resp.body = json.dumps({'response': 'valid actions are reset, restore, or save'})
 
 
 class Similar:
@@ -349,6 +317,7 @@ class TSne:
 
         resp.body = json.dumps({'response': data})
 
+
 """
 ================================
 Add the endpoints to the service
@@ -358,11 +327,8 @@ api = falcon.API()
 api.add_route('/view/{file_name}', Display())
 api.add_route('/layer{layer}/{index}/{junk}', LayerImage())
 api.add_route('/learn/{index}', DoLearning())
-api.add_route('/reset_session', ResetSession())
-api.add_route('/save_session', SaveSession())
-api.add_route('/restore_session', RestoreSession())
+api.add_route('/session/{action}', SessionControl())
 api.add_route('/similar/{index}', Similar())
-api.add_route('/blend/{a_value}/{b_value}/{amount}', BlendImage())
 api.add_route('/group_predict/{response_index}', GroupPredict())
 api.add_route('/tsne/{size}', TSne())
 api.add_route('/dataset', dataset)
