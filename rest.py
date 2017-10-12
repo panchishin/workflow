@@ -140,7 +140,7 @@ class LayerImage:
         else:
             return data.reshape(image.shape[1:])
 
-    def on_get(self, req, resp, layer, index, junk):
+    def on_get(self, req, resp, layer, index):
         try:
             ml_layer = [autoencode_model.x_noisy, autoencode_model.x_out_1, autoencode_model.x_out_2, autoencode_model.x_out_3,
                         autoencode_model.x_out_4, autoencode_model.x_out_5, autoencode_model.x_in][int(layer)]
@@ -324,7 +324,7 @@ Add the endpoints to the service
 """
 api = falcon.API()
 api.add_route('/view/{file_name}', Display())
-api.add_route('/layer{layer}/{index}/{junk}', LayerImage())
+api.add_route('/layer{layer}/{index}', LayerImage())
 api.add_route('/learn/{index}', DoLearning())
 api.add_route('/session/{action}', SessionControl())
 api.add_route('/similar/{index}', Similar())

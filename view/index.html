@@ -32,7 +32,7 @@
 		<div class="imageline">
 			<div class="texty"><p>Original</p></div>
 			<span ng-repeat="index in data.images">
-				<img class="mnist" src="/layer-1/{{index}}/{{0}}" ng-click="similar(index)"></img>
+				<img class="mnist" src="/layer-1/{{index}}" ng-click="similar(index)"></img>
 			</span>
 			<button class="btn btn-primary btn-sm" ng-click="randomizeImage()">Random</button>
 			<button ng-show="layer_display.length == 0" type="button" class="btn btn-primary btn-sm" ng-click="layer_display=[0,1,2,3,4,5]">Show Details</button>
@@ -41,13 +41,13 @@
 		<div ng-repeat="layer in layer_display" class="imageline">
 			<div class="texty">
 				<p ng-show="layer == 0">Noise images</p>
-				<p ng-show="layer > 0">Layer {{layer}} : {{data.training_sessions[layer]}} epochs</p>
+				<p ng-show="layer > 0">Layer {{layer}}</p>
 			</div>
 			<span ng-repeat="index in data.images">
-				<img class="mnist" src="/layer{{layer}}/{{index}}/{{data.training_sessions[layer]}}" ng-click="similar(index)"></img>
+				<img class="mnist" src="/layer{{layer}}/{{index}}" ng-click="similar(index)"></img>
 			</span>
 			<button ng-hide="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train Layer {{layer+1}}</button>
-			<button ng-show="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train All ({{data.training_sessions[5]}} epochs)</button>
+			<button ng-show="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train All</button>
 		</div>
 		<div ng-show="layer_display.length > 0">
 			<div class="texty"><p>Actions</p></div>
@@ -154,7 +154,7 @@
 		<div class="imageline" ng-show="similar_images.length > 0">
 			<div class="texty"><p>Images Found</p></div>
 			<span ng-repeat="data in similar_images">
-				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}/{{0}}" ng-click="data.state=1-data.state"></img>
+				<img class="mnist" ng-class="data.state?'selected':'not_selected'" src="/layer-1/{{data.id}}" ng-click="data.state=1-data.state"></img>
 			</span>
 			<button class="btn btn-primary btn-sm label_button" ng-click="reverseSimilarImages()">Flip</button>
 			<button class="btn btn-primary btn-sm label_button" ng-click="randomizeImage()">Random</button>

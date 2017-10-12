@@ -5,8 +5,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     function initialize() {
         $scope.data = {
-        	'images' : [],
-            'training_sessions' : [0,0,0,0,0,0,0]
+        	'images' : []
         };
         $scope.similar_images = [];
         $scope.error_data = [];
@@ -97,13 +96,9 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     $scope.learn = function(index) {
         $http({ method : "GET" , url : "/learn/"+index , cache: false}).then(function successCallback(result) {
-            $scope.data.training_sessions[index] += 1;
             $scope.randomizeImage();
             var retrain = function() {
                 $scope.learn(index);
-            }
-            if ( $scope.data.training_sessions[index] % 10 != 0 ) {
-                $timeout(retrain, 2000);
             }
         })
     }
