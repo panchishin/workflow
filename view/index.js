@@ -3,22 +3,22 @@ var imageWorkflow = angular.module('imageWorkflow' , []);
 
 imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$interval) {
 
-    $scope.data = {
-    	'images' : [],
-        'training_sessions' : [0,0,0,0,0,0,0],
-        'difference_images' : [],
-        'sele' : 1,
-        'prev' : 2
-    };
-    $scope.similar_images = [];
-    $scope.error_data = [];
-    $scope.label_list = {};
-    $scope.groups = {};
-    $scope.isLabeled = 0;
-    $scope.search_order = "forward";
-    $scope.search_index = .5;
-    $scope.data_size = 0
-    $scope.dataset_name = "None";
+    function initialize() {
+        $scope.data = {
+        	'images' : [],
+            'training_sessions' : [0,0,0,0,0,0,0]
+        };
+        $scope.similar_images = [];
+        $scope.error_data = [];
+        $scope.label_list = {};
+        $scope.groups = {};
+        $scope.isLabeled = 0;
+        $scope.search_order = "forward";
+        $scope.search_index = .5;
+        $scope.data_size = 0
+        $scope.dataset_name = "None";
+    }
+    initialize();
 
 
     function retrieveSnapShot() {
@@ -32,7 +32,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         return Object.keys(retrieveSnapShot()).sort();
     }
 
-    var importantData = 'label_list,groups'.split(",")
+    var importantData = ['label_list','groups']
 
     $scope.load_snap_shot = function(snap_shot_name) {
         var snap_shots = retrieveSnapShot();
@@ -78,23 +78,10 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         })
     }
 
-    $scope.reset_session = function() {
-        $http({method:"GET" , url : "/reset_session" , cache: false}).then(function successCallback(result) {
-            console.log("reset_session");
+    $scope.session = function(action) {
+        $http({method:"GET" , url : "/session/" + action , cache: false}).then(function successCallback(result) {
+            console.log("session "+action);
             $scope.randomizeImage();
-        })
-    }
-
-    $scope.restore_session = function() {
-        $http({method:"GET" , url : "/restore_session" , cache: false}).then(function successCallback(result) {
-            console.log("restore_session");
-            $scope.randomizeImage();
-        })
-    }
-
-    $scope.save_session = function() {
-        $http({method:"GET" , url : "/save_session" , cache: false}).then(function successCallback(result) {
-            console.log("save_session");
         })
     }
 
@@ -425,7 +412,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     $scope.get_tsne_batch = function() {
-        $http({method:"GET" , url : "/tsne/2000", cache: false}).then(function successCallback(result) {
+        $http({method:"GET" , url : "/tsne/1000", cache: false}).then(function successCallback(result) {
             $scope.tsne_creation( result.data.response )
         })
     }
