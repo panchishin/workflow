@@ -9,74 +9,98 @@ import label_predict
 from sklearn.manifold import TSNE
 from data_source import ConcatWrapper, SliceWrapper, LazyLoadWrapper, BatchWrapper, ResizeWrapper, ReshapeWrapper, Mnist, FileReader
 
-data_sets = {}
+
+class Dataset:
+
+    def __init__(self):
+        self.value = None
+        self.imageData = None
+        self.dataSize = 0
+        self.data_sets = {}
+
+    def choose_mnist(self):
+        print "CHOSE MNIST"
+        global predictor, autoencode_model, embeddings
+
+        predictor = autoencode_predict.predict(name="meta-data/mnist/autoencode_model", color_depth=1)
+        predictor.stop()
+        predictor.restore()
+        autoencode_model = predictor.autoencode_model
+        embeddings = Embeddings(predictor)
+
+        print "Loading images ..."
+        if 'mnist' not in self.data_sets:
+            print "Key missing.  Building ImageData"
+            imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(ReshapeWrapper(Mnist(), [28, 28, 1]), [32, 32])))
+            imageData.getImages()
+            self.data_sets['mnist'] = imageData
+
+        print "  mnist shape is", self.data_sets['mnist'].getImages().shape
+        print "... loading images done"
+        embeddings.data_set = self.data_sets['mnist'].getImages()
+        return self.data_sets['mnist']
+
+    def choose_garden(self):
+        print "CHOSE GARDEN"
+        global predictor, autoencode_model, embeddings
+
+        predictor = autoencode_predict.predict(name="meta-data/garden/garden_model", color_depth=3)
+        predictor.stop()
+        predictor.restore()
+        autoencode_model = predictor.autoencode_model
+        embeddings = Embeddings(predictor)
+        config_data = json.load(open("data/file_data.json", "r"))
+
+        print "Loading images ..."
+        if 'garden' not in self.data_sets:
+            print "Key missing.  Building ImageData"
+
+            print "Loading files ...",
+            files = LazyLoadWrapper(ResizeWrapper(FileReader(config_data["file_names"], config_data["labels"]), [64, 64]))
+            files.init()
+            print "done."
+            print "Calculating full size ...",
+            full_size = LazyLoadWrapper(ResizeWrapper(files, [32, 32]))
+            full_size.init()
+            print "done."
+            print "Calculating half size ...",
+            half_size = LazyLoadWrapper(SliceWrapper(files, 32, 16))
+            half_size.init()
+            print "done."
+            print "Calculating concat the whole thing ...",
+            self.data_sets['garden'] = LazyLoadWrapper(BatchWrapper(ConcatWrapper([full_size, half_size])))
+            print "done."
+
+            self.data_sets['garden'].getImages()
+
+        print "  garden shape is", self.data_sets['garden'].getImages().shape
+        print "... loading images done"
+        embeddings.data_set = self.data_sets['garden'].getImages()
+        return self.data_sets['garden']
+
+    def on_get(self, req, resp):
+        resp.body = json.dumps({'response': {'result': 'success', 'value': self.value,
+                                             'size': self.dataSize, 'available': ['mnist', 'garden']}})
+
+    def on_post(self, req, resp):
+        data_text = req.stream.read()
+        data = json.loads(data_text)
+
+        if data['value'] == "mnist" and data['value'] != self.value:
+            self.imageData = self.choose_mnist()
+        if data['value'] == "garden" and data['value'] != self.value:
+            self.imageData = self.choose_garden()
+
+        self.value = data['value']
+        self.dataSize = self.imageData.getImages().shape
+        resp.body = json.dumps({'response': {'result': 'success', 'set': self.value, 'size': self.imageData.getImages().shape}})
 
 
-def choose_mnist():
-    print "CHOSE MNIST"
-    global predictor, autoencode_model, embeddings, imageData, data_sets
-
-    predictor = autoencode_predict.predict(name="meta-data/mnist/autoencode_model", color_depth=1)
-    predictor.stop()
-    predictor.restore()
-    autoencode_model = predictor.autoencode_model
-    embeddings = Embeddings(predictor)
-
-    print "Loading images ..."
-    if 'mnist' not in data_sets:
-        print "Key missing.  Building ImageData"
-        imageData = LazyLoadWrapper(BatchWrapper(ResizeWrapper(ReshapeWrapper(Mnist(), [28, 28, 1]), [32, 32])))
-        imageData.getImages()
-        data_sets['mnist'] = imageData
-
-    print "  mnist shape is", data_sets['mnist'].getImages().shape
-    print "... loading images done"
-    embeddings.data_set = data_sets['mnist'].getImages()
-    return data_sets['mnist']
-
-
-def choose_garden():
-    print "CHOSE GARDEN"
-    global predictor, autoencode_model, embeddings, imageData, data_sets
-
-    predictor = autoencode_predict.predict(name="meta-data/garden/garden_model", color_depth=3)
-    predictor.stop()
-    predictor.restore()
-    autoencode_model = predictor.autoencode_model
-    embeddings = Embeddings(predictor)
-    config_data = json.load(open("data/file_data.json", "r"))
-
-    print "Loading images ..."
-    if 'garden' not in data_sets:
-        print "Key missing.  Building ImageData"
-
-        print "Loading files ...",
-        files = LazyLoadWrapper(ResizeWrapper(FileReader(config_data["file_names"], config_data["labels"]), [64, 64]))
-        files.init()
-        print "done."
-        print "Calculating full size ...",
-        full_size = LazyLoadWrapper(ResizeWrapper(files, [32, 32]))
-        full_size.init()
-        print "done."
-        print "Calculating half size ...",
-        half_size = LazyLoadWrapper(SliceWrapper(files, 32, 16))
-        half_size.init()
-        print "done."
-        print "Calculating concat the whole thing ...",
-        imageData = LazyLoadWrapper(BatchWrapper(ConcatWrapper([full_size, half_size])))
-        print "done."
-
-        imageData.getImages()
-        data_sets['garden'] = imageData
-
-    print "  garden shape is", data_sets['garden'].getImages().shape
-    print "... loading images done"
-    embeddings.data_set = data_sets['garden'].getImages()
-    return data_sets['garden']
+dataset = Dataset()
 
 
 def getImageWithIndex(index):
-    return imageData.getImages()[index:index + 1]
+    return dataset.imageData.getImages()[index:index + 1]
 
 
 def getExample(index, layer):
@@ -167,7 +191,7 @@ class DoLearning:
              autoencode_model.loss_5, autoencode_model.loss_6][int(index)],
             [autoencode_model.train_1, autoencode_model.train_2, autoencode_model.train_3, autoencode_model.train_4,
              autoencode_model.train_5, autoencode_model.train_6][int(index)],
-            imageData)
+            dataset.imageData)
         embeddings.reset()
         resp.body = json.dumps({'response': 'done'})
 
@@ -225,7 +249,7 @@ class GroupPredict:
 
         print "  F1  :",
         total_f1 = 0.
-        ground = np.argmax(imageData.getLabels(), 1)
+        ground = np.argmax(dataset.imageData.getLabels(), 1)
         for a in range(10):
             precision = 1. * ((ground == a) * (predict == a)).sum() / (predict == a).sum()
             recall = 1. * ((ground == a) * (predict == a)).sum() / (ground == a).sum()
@@ -234,12 +258,12 @@ class GroupPredict:
             print "%5d" % (100. * f1),
         print "AVG %5d" % (10. * total_f1)
         print "== Ground truth error %5.2f == error,top_percent,count : " % (
-            100. * (np.argmax(imageData.getLabels(), 1) != np.argmax(result, 1)).mean()),
+            100. * (np.argmax(dataset.imageData.getLabels(), 1) != np.argmax(result, 1)).mean()),
         for confidence in [1., .99, .90, .75, .5, .25, .1, .01]:
             conf_filter = np.argsort(np.max(result, 1))[::-1]
             conf_filter = conf_filter[: int(conf_filter.shape[0] * confidence)]
             print "%5.2f%s %4.2f %5d ," % (
-                100. * (np.argmax(imageData.getLabels()[conf_filter, :], 1) != np.argmax(result[conf_filter, :], 1)).mean(),
+                100. * (np.argmax(dataset.imageData.getLabels()[conf_filter, :], 1) != np.argmax(result[conf_filter, :], 1)).mean(),
                 "%", confidence, conf_filter.shape[0]),
         print "\n"
 
@@ -325,22 +349,6 @@ class TSne:
 
         resp.body = json.dumps({'response': data})
 
-
-class ChooseDataset:
-
-    def on_get(self, req, resp, data_set):
-        global imageData
-        if data_set == "mnist":
-            imageData = choose_mnist()
-            resp.body = json.dumps({'response': {'result': 'success', 'set': 'mnist', 'size': imageData.getImages().shape}})
-            return
-        if data_set == "garden":
-            imageData = choose_garden()
-            resp.body = json.dumps({'response': {'result': 'success', 'set': 'garden', 'size': imageData.getImages().shape}})
-            return
-        resp.body = json.dumps({'response': {'result': 'failure'}})
-
-
 """
 ================================
 Add the endpoints to the service
@@ -357,4 +365,4 @@ api.add_route('/similar/{index}', Similar())
 api.add_route('/blend/{a_value}/{b_value}/{amount}', BlendImage())
 api.add_route('/group_predict/{response_index}', GroupPredict())
 api.add_route('/tsne/{size}', TSne())
-api.add_route('/choose_dataset/{data_set}', ChooseDataset())
+api.add_route('/dataset', dataset)

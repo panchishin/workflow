@@ -3,7 +3,6 @@ var imageWorkflow = angular.module('imageWorkflow' , []);
 
 imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$interval) {
 
-    $scope.layer_display = [];
     $scope.data = {
     	'images' : [],
         'training_sessions' : [0,0,0,0,0,0,0],
@@ -18,7 +17,8 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     $scope.isLabeled = 0;
     $scope.search_order = "forward";
     $scope.search_index = .5;
-    $scope.data_size = 55000
+    $scope.data_size = 0
+    $scope.dataset_name = "None";
 
 
     function retrieveSnapShot() {
@@ -430,8 +430,18 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         })
     }
 
+
+    $scope.get_dataset = function() {
+        $http({method:"GET" , url : "/dataset" , cache: false}).then(function successCallback(result) {
+            $scope.dataset_name = parseInt(result.data.response.value)
+            $scope.data_size = parseInt(result.data.response.size)
+            $scope.randomizeImage();
+        })
+    }
+
     $scope.choose_dataset = function(name) {
-        $http({method:"GET" , url : "/choose_dataset/"+name, cache: false}).then(function successCallback(result) {
+        $http({method:"POST" , url : "/dataset" , data : {'value':name}, cache: false}).then(function successCallback(result) {
+            $scope.dataset_name = name
             $scope.data_size = parseInt(result.data.response.size)
             $scope.randomizeImage();
         })
