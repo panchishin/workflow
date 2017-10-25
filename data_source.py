@@ -89,9 +89,9 @@ class FileReader:
     def getImagesFromFile(self, file_name):
         import os
         import urllib
-        full_name = "../garden/data/" + file_name
+        full_name = "data/" + file_name
         if not os.path.isfile(full_name):
-            print "downloading", file_name
+            print "downloading",self.nameToURL(file_name),"as files", file_name
             urllib.urlretrieve(self.nameToURL(file_name), full_name)
         images = self.sess.run([self.tf_img, self.tf_img_flip], feed_dict={self.tf_img_name: full_name})
         return images
