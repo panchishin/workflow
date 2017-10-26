@@ -1,3 +1,10 @@
+"""
+Data source classess implement the following functions
+init() : no return.  run any post construction initialization may take time.
+getImages() : return a list of all images as a numpy array [number,width,height,channel]
+getLabels() : return a list of all labels as a numpy array [number,label]
+"""
+
 import numpy as np
 
 
@@ -46,7 +53,7 @@ class FileReader:
         self._preImageFetch()
         for file_name, label in zip(self.files, self.label_names):
             try:
-                for image in self.getImagesFromFile(file_name):
+                for image in self._getImagesFromFile(file_name):
                     self.labels.append(identity[one_hot.index(label), :].tolist())
                     self.images.append(image)
             except:
@@ -82,17 +89,17 @@ class FileReader:
         self.sess.close()
         del(self.sess)
 
-    def nameToURL(self, name):
+    def _nameToURL(self, name):
         BASE_URL = 'https://mygardenorg.s3.amazonaws.com/plantifier/'
         return BASE_URL + name
 
-    def getImagesFromFile(self, file_name):
+    def _getImagesFromFile(self, file_name):
         import os
         import urllib
         full_name = "data/" + file_name
         if not os.path.isfile(full_name):
-            print "downloading",self.nameToURL(file_name),"as files", file_name
-            urllib.urlretrieve(self.nameToURL(file_name), full_name)
+            print "downloading",self._nameToURL(file_name),"as files", file_name
+            urllib.urlretrieve(self._nameToURL(file_name), full_name)
         images = self.sess.run([self.tf_img, self.tf_img_flip], feed_dict={self.tf_img_name: full_name})
         return images
 
@@ -111,10 +118,10 @@ class ConcatWrapper:
         self.labels = None
 
     def init(self):
-        self.concat(self.sources)
+        self._concat(self.sources)
         del self.sources
 
-    def concat(self, sources):
+    def _concat(self, sources):
         self.images = np.concatenate([source.getImages() for source in self.sources], 0)
         self.labels = np.concatenate([source.getLabels() for source in self.sources], 0)
 
@@ -136,10 +143,10 @@ class SliceWrapper:
 
     def init(self):
         self.source.init()
-        self.set(self.source)
+        self._set(self.source)
         del self.source
 
-    def set(self, source):
+    def _set(self, source):
         source_images = source.getImages()
         source_labels = source.getLabels()
         x_range = range(0, source_images.shape[1] - self.width + 1, self.stride)
@@ -171,11 +178,11 @@ class ReshapeWrapper:
 
     def init(self):
         self.source.init()
-        self.set(self.source, self.target_shape)
+        self._set(self.source, self.target_shape)
         del self.source
         del self.target_shape
 
-    def set(self, source, target_shape):
+    def _set(self, source, target_shape):
         self.images = source.getImages().reshape([source.getImages().shape[0]] + target_shape)
         self.labels = source.getLabels()
 
@@ -194,11 +201,11 @@ class ResizeWrapper:
 
     def init(self):
         self.source.init()
-        self.resize(self.source, self.target_size)
+        self._resize(self.source, self.target_size)
         del self.source
         del self.target_size
 
-    def resize(self, source, target_size):
+    def _resize(self, source, target_size):
         self.labels = source.getLabels()
 
         import tensorflow as tf
