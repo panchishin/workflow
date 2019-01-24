@@ -1,6 +1,6 @@
 import tensorflow as tf
 from autoencode_model import Model
-
+import numpy as np
 
 class predict:
 
@@ -44,12 +44,15 @@ class predict:
             self.reset()
         print "done."
 
-    def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=100):
+    def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=20):
         batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size
         result = []
+        print "training",batches,"batches"
         for index in range(1, batches + 1):
             loss_result, _ = self.sess.run([loss, train], feed_dict={self.autoencode_model.x_in: data_feed.nextBatch(
                 batch_size)})
             if index == 1 or index == batches:
                 result.append({"index": index, "loss": loss_result})
+            if index % 25 == 0 :
+                print "  batch",index," (",round(100.*index/batches),"%)","loss", np.mean(loss_result), "shape",loss_result.shape
         return result

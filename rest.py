@@ -155,7 +155,7 @@ class LayerImage:
 class DoLearning:
 
     def on_get(self, req, resp, index):
-        print "TRAINING WITH", index
+        print "Training Layer", index
         loss = [autoencode_model.loss_1, autoencode_model.loss_2, autoencode_model.loss_3, autoencode_model.loss_4,
                 autoencode_model.loss_5, autoencode_model.loss_6][int(index)]
         train = [autoencode_model.train_1, autoencode_model.train_2, autoencode_model.train_3, autoencode_model.train_4,

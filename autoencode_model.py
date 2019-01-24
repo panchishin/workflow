@@ -1,8 +1,7 @@
 import tensorflow as tf
 import layer
 
-
-def encode(image, layers_in, layers_out=0, width=3, reuse=True):
+def encode(image, layers_in, layers_out=0, width=7, reuse=True):
     with tf.variable_scope("conv" + str(layers_in), reuse=reuse):
         layers_out = layers_in * 2 if layers_out == 0 else layers_out
         image = layer.conv(image, layers_in, layers_out, stride=2, width=width, name="stage1")
@@ -10,13 +9,14 @@ def encode(image, layers_in, layers_out=0, width=3, reuse=True):
         return image
 
 
-def decode(image, layers_in, layers_out=0, width=3, reuse=True):
+def decode(image, layers_in, layers_out=0, width=7, reuse=True):
     with tf.variable_scope("deconv" + str(layers_in), reuse=reuse):
         layers_out = layers_in / 2 if layers_out == 0 else layers_out
         image = layer.upscaleFlat(image, scale=2)
         image = layer.conv(image, layers_in, layers_out, width=width, name="stage1")
+        logits = image
         image = tf.tanh(image)
-        return image
+        return image , logits
 
 
 def autoencode(input, target, depth, color_depth, reuse=True):
@@ -24,10 +24,15 @@ def autoencode(input, target, depth, color_depth, reuse=True):
     for index in range(depth):
         autoencoding_layer.append(encode(autoencoding_layer[-1], color_depth * 2 ** index, reuse=reuse))
     embedding = autoencoding_layer[-1]
+    logits = None
     for index in range(depth, 0, -1):
-        autoencoding_layer.append(decode(autoencoding_layer[-1], color_depth * 2 ** index, reuse=reuse))
-    result = autoencoding_layer[-1]
-    loss = tf.log(tf.reduce_mean(target * tf.square(target - result)) + tf.reduce_mean((1 - target) * tf.square(target - result)))
+        image, logits = decode(autoencoding_layer[-1], color_depth * 2 ** index, reuse=reuse)
+        autoencoding_layer.append(image)
+    result = tf.sigmoid(logits)
+
+    # visually appeasing L1 & L2 blended loss from https://arxiv.org/pdf/1511.08861.pdf
+    loss = tf.reduce_mean( 0.16 * tf.abs(target - result) + 0.84 * tf.square(target - result) )
+
     return result, loss, embedding
 
 
@@ -48,7 +53,7 @@ class Model:
         self.x_out_2, self.loss_2, _ = autoencode(self.x_noisy, self.x_in, 2, color_depth)
         self.x_out_1, self.loss_1, _ = autoencode(self.x_noisy, self.x_in, 1, color_depth)
 
-        self.loss_6 = self.loss_5 + self.loss_4 + self.loss_3 + self.loss_2 + self.loss_1
+        self.loss_6 = ( self.loss_5 + self.loss_4 + self.loss_3 + self.loss_2 + self.loss_1 ) / 5.0
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
