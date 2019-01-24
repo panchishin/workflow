@@ -1,7 +1,7 @@
 import tensorflow as tf
 import layer
 
-def encode(image, layers_in, layers_out=0, width=7, reuse=True):
+def encode(image, layers_in, layers_out=0, width=5, reuse=True):
     with tf.variable_scope("conv" + str(layers_in), reuse=reuse):
         layers_out = layers_in * 2 if layers_out == 0 else layers_out
         image = layer.conv(image, layers_in, layers_out, stride=2, width=width, name="stage1")
@@ -9,7 +9,7 @@ def encode(image, layers_in, layers_out=0, width=7, reuse=True):
         return image
 
 
-def decode(image, layers_in, layers_out=0, width=7, reuse=True):
+def decode(image, layers_in, layers_out=0, width=5, reuse=True):
     with tf.variable_scope("deconv" + str(layers_in), reuse=reuse):
         layers_out = layers_in / 2 if layers_out == 0 else layers_out
         image = layer.upscaleFlat(image, scale=2)
@@ -22,11 +22,13 @@ def decode(image, layers_in, layers_out=0, width=7, reuse=True):
 def autoencode(input, target, depth, color_depth, reuse=True):
     autoencoding_layer = [input]
     for index in range(depth):
-        autoencoding_layer.append(encode(autoencoding_layer[-1], color_depth * 2 ** index, reuse=reuse))
+        width = [7,7,7,5,3][index]
+        autoencoding_layer.append(encode(autoencoding_layer[-1], color_depth * 2 ** index, width=width, reuse=reuse))
     embedding = autoencoding_layer[-1]
     logits = None
     for index in range(depth, 0, -1):
-        image, logits = decode(autoencoding_layer[-1], color_depth * 2 ** index, reuse=reuse)
+        width = [7,7,7,5,3][index-1]
+        image, logits = decode(autoencoding_layer[-1], color_depth * 2 ** index, width=width, reuse=reuse)
         autoencoding_layer.append(image)
     result = tf.sigmoid(logits)
 
