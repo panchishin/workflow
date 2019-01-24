@@ -45,7 +45,7 @@ class predict:
         print "done."
 
     def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=20):
-        batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size
+        batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size / 5
         result = []
         print "training",batches,"batches"
         for index in range(1, batches + 1):

@@ -55,7 +55,11 @@ class Model:
         self.x_out_2, self.loss_2, _ = autoencode(self.x_noisy, self.x_in, 2, color_depth)
         self.x_out_1, self.loss_1, _ = autoencode(self.x_noisy, self.x_in, 1, color_depth)
 
-        self.loss_6 = ( self.loss_5 + self.loss_4 + self.loss_3 + self.loss_2 + self.loss_1 ) / 5.0
+        self.loss_6 = self.loss_5
+        self.loss_5 = ( self.loss_5 + self.loss_4 + self.loss_3 + self.loss_2 + self.loss_1 ) / 5.0
+        self.loss_4 = ( self.loss_4 + self.loss_3 + self.loss_2 + self.loss_1 ) / 4.0
+        self.loss_3 = ( self.loss_3 + self.loss_2 + self.loss_1 ) / 3.0
+        self.loss_2 = ( self.loss_2 + self.loss_1 ) / 2.0
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
