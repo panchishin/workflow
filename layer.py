@@ -8,12 +8,11 @@ def parameter_count(shape, name=""):
         print "Parametes ", shape, ", Count :", reduce(lambda x, y: x * y, shape), ", Name", name
 
 
-xavier = tf.contrib.layers.xavier_initializer_conv2d()
-
+initializer = tf.contrib.layers.variance_scaling_initializer(uniform=True,dtype=tf.float32)
 
 def weight_variable(shape, name="Weight_Variable"):
     parameter_count(shape, name)
-    return tf.get_variable(initializer=xavier(shape=shape), name=name)
+    return tf.get_variable(initializer=initializer(shape=shape), name=name)
 
 
 def bias_variable(shape, name="Bias_Variable"):
