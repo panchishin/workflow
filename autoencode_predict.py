@@ -1,6 +1,7 @@
 import tensorflow as tf
 from autoencode_model import Model
 import numpy as np
+from time import time
 
 class predict:
 
@@ -44,15 +45,26 @@ class predict:
             self.reset()
         print "done."
 
-    def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=20):
-        batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size / 5
+    def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=1024, top_k=32, elapse=1):
+        start_time = time()
+        batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size
         result = []
-        print "training",batches,"batches"
-        for index in range(1, batches + 1):
-            loss_result, _ = self.sess.run([loss, train], feed_dict={self.autoencode_model.x_in: data_feed.nextBatch(
-                batch_size)})
-            if index == 1 or index == batches:
-                result.append({"index": index, "loss": loss_result})
-            if index % 25 == 0 :
-                print "  batch",index," (",round(100.*index/batches),"%)","loss", np.mean(loss_result), "shape",loss_result.shape
+        index = 0.
+        while time() < start_time + elapse :
+            index += 1.
+
+            next_data = data_feed.nextBatch(batch_size)
+            top_k = min(16,next_data.shape[0])
+
+            top_result = self.sess.run(self.autoencode_model.top_result, feed_dict={ 
+                self.autoencode_model.x_in: next_data,
+                self.autoencode_model.top_k: top_k
+                })
+            loss_result, _ = self.sess.run([loss, train], feed_dict={ 
+                self.autoencode_model.x_in: next_data[top_result],
+                self.autoencode_model.top_k: len(top_result)
+                })
+
+        print "  loss", loss_result.shape, np.mean(loss_result), ", sec/batch",(time()-start_time)/index
+
         return result

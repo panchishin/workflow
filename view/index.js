@@ -5,7 +5,8 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     function initialize() {
         $scope.data = {
-        	'images' : []
+        	'images' : [],
+            'similar_embed' : []
         };
         $scope.similar_images = [];
         $scope.error_data = [];
@@ -14,11 +15,18 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         $scope.isLabeled = 0;
         $scope.search_order = "forward";
         $scope.search_index = .5;
-        $scope.data_size = 0
+        $scope.data_size = 0;
         $scope.dataset_name = "None";
+        $scope.layer_display=[];
     }
     initialize();
 
+    $scope.label_listing = function(){
+        var data = $scope.label_list ?$scope.label_list : {}
+        var result = Object.keys(data);
+        results.sort();
+        return result;
+    }
 
     function retrieveSnapShot() {
         var snap_shots = localStorage.getItem("snap_shots");
@@ -61,15 +69,32 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
     }
 
     $scope.randomizeImage = function() {
-        $scope.data.images = []
-        $scope.similar_images = []
+        $scope.data.images = [];
+        $scope.similar_embed = [[],[],[],[],[],[],[],[],[],[]];
+        $scope.similar_images = [];
         for (index=0 ; index < 10 ; index++ ) {
             var image = getRandomImageIndex()
             $scope.data.images.push( image )
             $scope.similar_images.push( { 'id' : image , 'state' : 0 } )
         }
     }
-    $scope.randomizeImage()
+
+
+
+    $scope.showSimilarToEmbed = function() {
+        $scope.similar_embed = [[],[],[],[],[],[],[],[],[],[]];
+        for (index=0 ; index < 10 ; index++ ) {
+            var image = $scope.data.images[index];
+            function callback(image,index){
+                var _index = index+0;
+                var _image = image+1;
+                return function(response) {
+                    $scope.similar_embed[_index] = response;
+                }
+            }
+            getSimilar(image,callback(image,index))
+        }
+    }
 
     $scope.reverseSimilarImages = function() {
         Object.keys($scope.similar_images).forEach( function(key) {
@@ -84,12 +109,18 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         })
     }
 
+    function getSimilar(index,callback) {
+        $http({method:"GET" , url : "/similar/"+index , cache: false}).then(function successCallback(result) {
+            callback(result.data.response)
+        })
+    }
+
     $scope.similar = function(index) {
         $scope.new_label="";
-        $http({method:"GET" , url : "/similar/"+index , cache: false}).then(function successCallback(result) {
+        getSimilar(index,function(response){
             $scope.similar_images = []
-            for ( var index in result.data.response ) {
-              $scope.similar_images.push( { 'id' : result.data.response[index] , 'state' : 1 } );
+            for ( var index in response ) {
+              $scope.similar_images.push( { 'id' : response[index] , 'state' : 1 } );
             }
         })
     }

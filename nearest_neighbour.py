@@ -3,7 +3,7 @@ import random
 from scipy import spatial
 
 
-def byIndex(target_index, embeddings, size=10, max_search_size=2000):
+def byIndex(target_index, embeddings, size=10, max_search_size=25000):
     target_embedding = embeddings[target_index]
 
     # only search a small region

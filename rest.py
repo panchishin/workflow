@@ -11,7 +11,8 @@ from data_source import ConcatWrapper, SliceWrapper, LazyLoadWrapper, BatchWrapp
 import scipy.misc
 import tempfile
 import dummy_predict
-
+import thread
+import time
 
 predictor = dummy_predict
 
@@ -103,6 +104,8 @@ class Dataset:
 
 
 dataset = Dataset()
+dataset.imageData = dataset.choose_mnist()
+dataset.value = 'mnist'
 
 
 def falconRespondArrayAsImage(data, resp):
@@ -154,15 +157,43 @@ class LayerImage:
 
 class DoLearning:
 
+    def __init__(self) :
+        self.on = False
+        self.alive = True
+        self.layer = 4
+
+        def doLoop():
+            print "Started worker thread"
+            while self.alive:
+                time.sleep(0.1)
+                if self.on :
+                    self.learn(self.layer)
+
+        thread.start_new_thread( doLoop , () )
+
+    def __del__(self):
+        self.alive = False
+        self.on = False
+
     def on_get(self, req, resp, index):
-        print "Training Layer", index
-        loss = [autoencode_model.loss_1, autoencode_model.loss_2, autoencode_model.loss_3, autoencode_model.loss_4,
-                autoencode_model.loss_5, autoencode_model.loss_6][int(index)]
-        train = [autoencode_model.train_1, autoencode_model.train_2, autoencode_model.train_3, autoencode_model.train_4,
-                 autoencode_model.train_5, autoencode_model.train_6][int(index)]
+        self.on = not self.on
+        self.layer = int(index)
+        if self.on :
+            print "Training Layer", index
+        else :
+            print "Turning off training"
+        resp.body = json.dumps({'response': 'done'})
+
+    def learn(self,index):
+        loss = autoencode_model.loss_5
+        train = autoencode_model.train_5
         predictor.doEpochOfTraining(loss, train, dataset.imageData)
         embeddings.reset()
-        resp.body = json.dumps({'response': 'done'})
+
+
+
+
+#doLearning = DoLearning()
 
 
 class SessionControl:

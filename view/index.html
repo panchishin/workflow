@@ -35,19 +35,20 @@
 				<img class="mnist" src="/layer-1/{{index}}" ng-click="similar(index)"></img>
 			</span>
 			<button class="btn btn-primary btn-sm" ng-click="randomizeImage()">Random</button>
-			<button ng-show="layer_display.length == 0" type="button" class="btn btn-primary btn-sm" ng-click="layer_display=[0,1,2,3,4,5]">Show Details</button>
+			<button ng-show="layer_display.length == 0" type="button" class="btn btn-primary btn-sm" ng-click="layer_display=[5]">Show Details</button>
 			<button ng-hide="layer_display.length == 0" type="button" class="btn btn-primary btn-sm" ng-click="layer_display=[]">Hide Details</button>
+			<button ng-show="similar_embed[0].length == 0" type="button" class="btn btn-primary btn-sm" ng-click="showSimilarToEmbed()">Show Similar</button>
 		</div>
 		<div ng-repeat="layer in layer_display" class="imageline">
 			<div class="texty">
 				<p ng-show="layer == 0">Noise images</p>
-				<p ng-show="layer > 0">Layer {{layer}}</p>
+				<p ng-show="layer > 0">Imagined {{layer}}</p>
 			</div>
 			<span ng-repeat="index in data.images">
 				<img class="mnist" src="/layer{{layer}}/{{index}}" ng-click="similar(index)"></img>
 			</span>
 			<button ng-hide="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train Layer {{layer+1}}</button>
-			<button ng-show="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(layer)">Train All</button>
+			<button ng-show="layer==5" type="button" class="btn btn-primary btn-sm" ng-click="learn(4)">Train</button>
 		</div>
 		<div ng-show="layer_display.length > 0">
 			<div class="texty"><p>Actions</p></div>
@@ -55,6 +56,13 @@
 			<button class="btn btn-primary btn-sm" ng-click="session('restore')">Restore Net</button>
 			<button class="btn btn-primary btn-sm" ng-click="session('save')">Save Net</button>
 		</div>
+		<div ng-show="similar_embed[0].length > 0" ng-repeat="example in [0,1,2,3,4,5,6,7,8,9]" class="imageline">
+			<div class="texty"><p>sims</p></div>
+			<span ng-repeat="column in [0,1,2,3,4,5,6,7,8,9]">
+				<img class="mnist" src="/layer-1/{{similar_embed[column][example]}}" ng-click="similar(similar_embed[column][example])"></img>
+			</span>
+		</div>
+
 	</div>
 
 

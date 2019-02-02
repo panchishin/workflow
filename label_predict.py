@@ -140,4 +140,5 @@ def predictiveMultiClassWeights(examples, embeddings):
     weights = (weights_A + weights_B) / 2.
     max_error_length = min(error_A.shape[0], error_B.shape[0])
     error = (error_A[:max_error_length, :] + error_B[:max_error_length, :]) / 2
+    print "predictiveMultiClassWeights weights.shape",weights.shape
     return weights, error

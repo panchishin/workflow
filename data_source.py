@@ -6,6 +6,7 @@ getLabels() : return a list of all labels as a numpy array [number,label]
 """
 
 import numpy as np
+import pandas as pd
 
 
 class Mnist:
@@ -17,17 +18,30 @@ class Mnist:
         self.get_mnist_data(self.training)
 
     def get_mnist_data(self, training):
-        from tensorflow.examples.tutorials.mnist import input_data
-        import workflow_util
+        data_path = '/Users/anton/Downloads/emnist/emnist-byclass-train'
 
-        with workflow_util.block_stdout():
-            mnist = input_data.read_data_sets('./cache', one_hot=True)
+        try :
+            data = pd.read_hdf(data_path + ".h5",'img')
+            print "HDF success"
+        except :
+            print "NO HDF, creating from CSV now"
+            data = pd.read_csv(data_path + ".csv", header=None)
+            data.to_hdf(data_path + ".h5", 'img')
+            print "HDF write success"
 
-        self.images = mnist.train.images if training else mnist.test.images
-        self.labels = mnist.train.labels if training else mnist.test.labels
+            data.to_hdf(data_path + ".h5")
+
+        img_size = 28
+        samples = 100000
+        self.labels = data.values[:samples,0]
+        # data = np.transpose(data.values[:,1:].reshape(data.shape[0], img_size, img_size, 1), axes=[0,2,1,3])
+        data = np.transpose(data.values[:samples,1:].reshape(samples, img_size, img_size), axes=[0,2,1]) / 255.
+
+        self.data = data
+        print "EMNIST data import complete. Shape =",self.data.shape
 
     def getImages(self):
-        return self.images
+        return self.data
 
     def getLabels(self):
         return self.labels

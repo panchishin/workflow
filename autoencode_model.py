@@ -19,7 +19,13 @@ def decode(image, layers_in, layers_out=0, width=5, reuse=True):
         return image , logits
 
 
-def autoencode(input, target, depth, color_depth, reuse=True):
+def imageloss(target,result):
+    # visually appeasing L1 & L2 blended loss from https://arxiv.org/pdf/1511.08861.pdf
+    diff = target - result
+    return 0.16 * tf.abs(diff) + 0.84 * tf.square(diff)
+
+
+def autoencode(input, target, depth, color_depth, top_k, reuse=True):
     autoencoding_layer = [input]
     for index in range(depth):
         width = [7,7,7,5,3][index]
@@ -32,10 +38,13 @@ def autoencode(input, target, depth, color_depth, reuse=True):
         autoencoding_layer.append(image)
     result = tf.sigmoid(logits)
 
-    # visually appeasing L1 & L2 blended loss from https://arxiv.org/pdf/1511.08861.pdf
-    loss = tf.reduce_mean( 0.16 * tf.abs(target - result) + 0.84 * tf.square(target - result) )
+    loss = imageloss(target,result)
+    loss = tf.reduce_mean(loss,[1,2,3])
 
-    return result, loss, embedding
+    loss, top_result = tf.nn.top_k(loss,k=top_k)
+    loss = tf.reduce_mean(loss)
+
+    return result, loss, embedding, top_result
 
 
 class Model:
@@ -45,27 +54,17 @@ class Model:
         self.HIGH_LOW_NOISE = high_low_noise_value
         self.COLOR_DEPTH = color_depth
 
+        self.top_k = tf.placeholder_with_default(1,[], name="top_k")
         self.x_in = tf.placeholder(tf.float32, [None, size, size, color_depth], name="x0")
 
         self.x_noisy = layer.high_low_noise(self.x_in, high_low_noise_value)
 
-        self.x_out_5, self.loss_5, self.embedding = autoencode(self.x_noisy, self.x_in, 5, color_depth, False)
-        self.x_out_4, self.loss_4, _ = autoencode(self.x_noisy, self.x_in, 4, color_depth)
-        self.x_out_3, self.loss_3, _ = autoencode(self.x_noisy, self.x_in, 3, color_depth)
-        self.x_out_2, self.loss_2, _ = autoencode(self.x_noisy, self.x_in, 2, color_depth)
-        self.x_out_1, self.loss_1, _ = autoencode(self.x_noisy, self.x_in, 1, color_depth)
+        self.x_out_5, self.loss_5, self.embedding, self.top_result = autoencode(self.x_noisy, self.x_in, 5, color_depth, self.top_k, False)
+        self.x_out_4, self.loss_4, _, _ = autoencode(self.x_noisy, self.x_in, 4, color_depth, self.top_k)
+        self.x_out_3, self.loss_3, _, _ = autoencode(self.x_noisy, self.x_in, 3, color_depth, self.top_k)
+        self.x_out_2, self.loss_2, _, _ = autoencode(self.x_noisy, self.x_in, 2, color_depth, self.top_k)
+        self.x_out_1, self.loss_1, _, _ = autoencode(self.x_noisy, self.x_in, 1, color_depth, self.top_k)
 
-        self.loss_6 = self.loss_5
         self.loss_5 = ( self.loss_5 + self.loss_4 + self.loss_3 + self.loss_2 + self.loss_1 ) / 5.0
-        self.loss_4 = ( self.loss_4 + self.loss_3 + self.loss_2 + self.loss_1 ) / 4.0
-        self.loss_3 = ( self.loss_3 + self.loss_2 + self.loss_1 ) / 3.0
-        self.loss_2 = ( self.loss_2 + self.loss_1 ) / 2.0
 
-        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-        with tf.control_dependencies(update_ops):
-            self.train_1 = tf.train.AdamOptimizer().minimize(self.loss_1)
-            self.train_2 = tf.train.AdamOptimizer().minimize(self.loss_2)
-            self.train_3 = tf.train.AdamOptimizer().minimize(self.loss_3)
-            self.train_4 = tf.train.AdamOptimizer().minimize(self.loss_4)
-            self.train_5 = tf.train.AdamOptimizer().minimize(self.loss_5)
-            self.train_6 = tf.train.AdamOptimizer().minimize(self.loss_6)
+        self.train_5 = tf.train.AdamOptimizer().minimize(self.loss_5)
