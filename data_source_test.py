@@ -31,13 +31,13 @@ class TestMnist(unittest.TestCase):
         self.resized = data_source.LazyLoadWrapper(data_source.ResizeWrapper(self.reshaped, [32, 32]))
  
     def test_check_image_shape(self):
-        self.assertEqual( self.mnist.getImages().shape , tuple([55000, 28 * 28]) )
+        self.assertEqual( self.mnist.getImages().shape , tuple([100000, 28, 28]) )
 
     def test_reshape(self):
-        self.assertEqual( self.reshaped.getImages().shape , tuple([55000, 28, 28, 1]) )
+        self.assertEqual( self.reshaped.getImages().shape , tuple([100000, 28, 28, 1]) )
 
     def test_resize(self):
-        self.assertEqual( self.resized.getImages().shape , tuple([55000, 32, 32, 1]) )
+        self.assertEqual( self.resized.getImages().shape , tuple([100000, 32, 32, 1]) )
 
     def test_batch(self):
         batch = data_source.BatchWrapper(self.resized)

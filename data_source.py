@@ -21,15 +21,16 @@ class Mnist:
         data_path = '/Users/anton/Downloads/emnist/emnist-byclass-train'
 
         try :
+            print "Trying to load",data_path
+            print "and it worked last time"
             data = pd.read_hdf(data_path + ".h5",'img')
             print "HDF success"
         except :
             print "NO HDF, creating from CSV now"
             data = pd.read_csv(data_path + ".csv", header=None)
-            data.to_hdf(data_path + ".h5", 'img')
-            print "HDF write success"
-
-            data.to_hdf(data_path + ".h5")
+            print "gunicorn seems to not play nice with hdf"
+            # data.to_hdf(data_path + ".h5" , 'img')
+            # print "HDF write success"
 
         img_size = 28
         samples = 100000

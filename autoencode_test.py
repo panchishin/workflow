@@ -15,11 +15,10 @@ class TestAutoEncodePredict(unittest.TestCase):
     def test_doEpoch(self):
         autoencode_model = self.predictor.autoencode_model
         data = LazyLoadWrapper(BatchWrapper(ResizeWrapper(ReshapeWrapper(Mnist(), [28, 28, 1]), [32, 32])))
-        result = self.predictor.doEpochOfTraining(autoencode_model.loss_6, autoencode_model.train_6, data_feed=data, batches=10, batch_size=50)
-        self.assertLess( result[0]['loss'] , -19)
-        self.assertLess( result[1]['loss'] , -19)
+        result = self.predictor.doEpochOfTraining(autoencode_model.loss_5, autoencode_model.train_5, data_feed=data, batches=10, batch_size=50, elapse=10)
+        self.assertLess( result[-1] , result[0] )
+
 
  
 if __name__ == '__main__':
     unittest.main()
-

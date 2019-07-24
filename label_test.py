@@ -12,7 +12,7 @@ embeddings.data_set = imageData.getImages()
 
 number = 4
 
-print "The number is", np.argmax(imageData.getLabels()[[number]], 1)
+print "The number is", imageData.getLabels()[number]
 
 nearest = nearest_neighbour.byIndex(number, embeddings.getEmbeddings(), size=200)
 result = zip(imageData.getLabels()[nearest], nearest)
@@ -30,7 +30,7 @@ print "Pretend labeling the first", len(nearest), " ..."
 fours_found = 0
 fours_missed = 0
 result = label_predict.predictiveMultiClassWeights([nearest, negative_examples], embeddings)[0]
-for item in zip(np.argmax(imageData.getLabels()[:100, :], 1), result[:100]):
+for item in zip(imageData.getLabels()[:100], result[:100]):
     if item[0]*1 == 4:
         if np.argmax(item[1]) == 0 :
             fours_found += 1

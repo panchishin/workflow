@@ -46,24 +46,25 @@ class predict:
         print "done."
 
     def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=1024, top_k=32, elapse=1):
-        start_time = time()
         batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size
         result = []
         index = 0.
+        start_time = time()
         while time() < start_time + elapse :
             index += 1.
 
             next_data = data_feed.nextBatch(batch_size)
-            top_k = min(16,next_data.shape[0])
+            _top_k = min(top_k,next_data.shape[0])
 
             top_result = self.sess.run(self.autoencode_model.top_result, feed_dict={ 
                 self.autoencode_model.x_in: next_data,
-                self.autoencode_model.top_k: top_k
+                self.autoencode_model.top_k: _top_k
                 })
             loss_result, _ = self.sess.run([loss, train], feed_dict={ 
                 self.autoencode_model.x_in: next_data[top_result],
                 self.autoencode_model.top_k: len(top_result)
                 })
+            result.append( np.mean(loss_result) )
 
         print "  loss", loss_result.shape, np.mean(loss_result), ", sec/batch",(time()-start_time)/index
 
