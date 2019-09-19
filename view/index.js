@@ -340,7 +340,7 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
         ;        
 
         gState.append("image")
-            .attr( "xlink:href" , function(d) { return "/layer-1/" + d.id + "/0" } )
+            .attr( "xlink:href" , function(d) { return "/layer-1/" + d.id } )
             .attr( { height:img_size, width:img_size })
 
 
@@ -439,7 +439,11 @@ imageWorkflow.controller('mainController', function ($scope,$http,$timeout,$inte
 
     $scope.get_tsne_batch = function() {
         $http({method:"GET" , url : "/tsne/1000", cache: false}).then(function successCallback(result) {
-            $scope.tsne_creation( result.data.response )
+            let response = result.data.response.map(function(data) {
+                return {'x': data.x / 1000.0 , 'y' : data.y / 1000.0 , 'id' : data.id}
+            })
+
+            $scope.tsne_creation( response )
         })
     }
 

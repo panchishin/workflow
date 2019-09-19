@@ -324,27 +324,29 @@ class GroupPredict:
 
 class TSne:
 
+    def __init__(self):
+        self.max_size = 1000
+        self.primed = False
+
     def calculate_tsne(self):
         print "Starting the TSNE calculation ..."
-        self.max_size = 2500
         positions = TSNE(n_components=2).fit_transform(embeddings.getEmbeddings()[:self.max_size])
         positions = positions - np.min(positions, 0)
         positions = positions / np.max(positions, 0)
         self.positions = positions
         print "... finished the TSNE calculations."
 
-    def __init__(self):
-        self.primed = False
-
     def on_get(self, req, resp, size):
         if self.primed is False:
-            self.primed = True
             self.calculate_tsne()
+            self.primed = True
         size = min(int(size), self.max_size)
-        data = []
+        data = [ ]
         for index in range(size):
-            data.append({'x': self.positions[index, 0], 'y': self.positions[index, 1], 'id': index})
+            data.append({'x': int(1000*self.positions[index, 0]), 'y': int(1000*self.positions[index, 1]), 'id': index})
 
+        #print "the data",data[:10]
+        #print "attempting to seralize using",json.__version__,"of json"
         resp.body = json.dumps({'response': data})
 
 
