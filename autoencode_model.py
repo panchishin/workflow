@@ -39,12 +39,11 @@ def autoencode(input, target, depth, color_depth, top_k, reuse=True):
     result = tf.sigmoid(logits)
 
     loss = imageloss(target,result)
-    loss = tf.reduce_mean(loss,[1,2,3])
+    batch_loss = tf.reduce_mean(loss,[1,2,3])
 
-    loss, top_result = tf.nn.top_k(loss,k=top_k)
-    loss = tf.reduce_mean(loss)
+    _, top_result = tf.nn.top_k(batch_loss, k=top_k)
 
-    return result, loss, embedding, top_result
+    return result, batch_loss, embedding, top_result
 
 
 class Model:
@@ -67,4 +66,5 @@ class Model:
 
         self.loss_5 = ( self.loss_5 + self.loss_4 + self.loss_3 + self.loss_2 + self.loss_1 ) / 5.0
 
-        self.train_5 = tf.train.AdamOptimizer().minimize(self.loss_5)
+        gradient_scale = 1. / tf.reduce_sum(tf.cast(tf.shape(self.loss_5), dtype=tf.float32))
+        self.train_5 = tf.train.GradientDescentOptimizer(gradient_scale).minimize(self.loss_5)

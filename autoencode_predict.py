@@ -45,8 +45,9 @@ class predict:
             self.reset()
         print "done."
 
-    def doEpochOfTraining(self, loss, train, data_feed, batches=0, batch_size=1024, top_k=32, elapse=1):
-        batches = batches if batches > 0 else data_feed.getImages().shape[0] / batch_size
+    def doEpochOfTraining(self, data_feed, batch_size=1024, top_k=32, elapse=1):
+        loss = self.autoencode_model.loss_5
+        train = self.autoencode_model.train_5
         result = []
         index = 0.
         start_time = time()
@@ -56,13 +57,14 @@ class predict:
             next_data = data_feed.nextBatch(batch_size)
             _top_k = min(top_k,next_data.shape[0])
 
+            # first getting the top_k results
             top_result = self.sess.run(self.autoencode_model.top_result, feed_dict={ 
                 self.autoencode_model.x_in: next_data,
                 self.autoencode_model.top_k: _top_k
                 })
+            # then only feeding that smaller dataset for backprop is a lot faster
             loss_result, _ = self.sess.run([loss, train], feed_dict={ 
-                self.autoencode_model.x_in: next_data[top_result],
-                self.autoencode_model.top_k: len(top_result)
+                self.autoencode_model.x_in: next_data[top_result]
                 })
             result.append( np.mean(loss_result) )
 

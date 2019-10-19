@@ -185,9 +185,7 @@ class DoLearning:
         resp.body = json.dumps({'response': 'done'})
 
     def learn(self,index):
-        loss = autoencode_model.loss_5
-        train = autoencode_model.train_5
-        predictor.doEpochOfTraining(loss, train, dataset.imageData)
+        predictor.doEpochOfTraining(dataset.imageData)
         embeddings.reset()
 
 

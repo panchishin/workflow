@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-SHOW_SIZE = True
+SHOW_SIZE = False
 
 
 def parameter_count(shape, name=""):
